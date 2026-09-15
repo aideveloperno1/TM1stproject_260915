@@ -16,7 +16,7 @@
 | 데이터 담당 산출물 위치 | `1차공모\Analysis\` (data_notes.md, 분석 코드). 서비스와는 `review_evidence.json`만 주고받음 | 결정(개발), 데이터 담당 공유 필요 |
 | 개발 환경 | uv + Python 3.12 (`.python-version`), 의존성은 `pyproject.toml`·`uv.lock` | 결정(개발) |
 | 코드 저장소 | GitHub **public** 저장소 https://github.com/aideveloperno1/TM1stproject_260915 (9/15 연결·공개 전환). 실제 분석 근거 파일(`private/`, `*_real_*.json`)과 `.env`(API 키)는 `.gitignore`로 제외 | 결정(개발) |
-| 라이선스 | 원격 초기 커밋의 GPL v3 유지 중. 공모전 제출·협업 조건과 맞는지 확인 필요 | 미정 |
+| 라이선스 | 오픈소스 라이선스 없음(모든 권리 보유). 9/15 GPL v3 LICENSE 삭제, README에 권리 고지. 이유: 참가신청서류 준수사항 5항(수상작 지식재산권 비씨카드 귀속)과 GPL의 영구 이용 허락이 충돌. 이력의 초기 커밋(`2cb4e19`)에는 LICENSE가 남아 있음 | 결정(개발), 데이터 담당 공유 필요 |
 | 지역 선택 목록 출처 | `데이터/2` 주민등록인구 CSV(공개 자료)의 시도·시군구 이름. 카드 CSV는 사용하지 않음 | 결정(개발) |
 | 화면 스타일 | 직접 작성한 CSS. 디자인은 `기획서 보완 서비스 랜딩페이지` 폴더(정책맵 랜딩·워크스페이스 시안) 참고 | 결정(개발) |
 | 기술 방식 | 전부 Python: FastAPI + Jinja2 템플릿(서버 렌더링) + 화면 반응용 소량 JS. 테스트는 pytest. (9/15 Vite + TypeScript에서 변경) | 결정(개발) |
