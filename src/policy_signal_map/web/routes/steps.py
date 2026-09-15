@@ -1,22 +1,37 @@
-"""2~5단계 임시 화면. 각 단계를 구현하면 evidence.py·questions.py·choices.py·draft.py로 옮긴다."""
+"""아직 구현하지 않은 단계의 임시 화면. 단계를 구현하면 해당 번호를 빼고 전용 라우트 파일로 옮긴다.
+
+app.py에서 이 라우터는 전용 단계 라우터보다 뒤에 등록해야 한다 (/step/{step}이 먼저면 /step/2 등을 가로챈다).
+"""
 
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, Response
 
-from ..session import COOKIE_NAME, store
-from ..templating import LAST_STEP, redirect, templates, with_cookie
+from ..dependencies import evidence_state_dep, session_dep
+from ..evidence_state import EvidenceState
+from ..session import WorkState
+from ..templating import LAST_STEP, redirect, render
 
 router = APIRouter()
-SessionCookie = Annotated[str | None, Cookie(alias=COOKIE_NAME)]
+Session = Annotated[tuple[str, WorkState], Depends(session_dep)]
+Evidence = Annotated[EvidenceState, Depends(evidence_state_dep)]
+
+FIRST_PLACEHOLDER_STEP = 2
 
 
 @router.get("/step/{step}", response_class=HTMLResponse)
-def show(request: Request, step: int, session: SessionCookie = None) -> Response:
-    session_id, state = store.get_or_create(session)
+def show(request: Request, step: int, session: Session, evidence: Evidence) -> Response:
+    session_id, state = session
     # 원안을 보관하기 전에는 기획 입력만 열 수 있다
-    if state.original is None or not 2 <= step <= LAST_STEP:
+    if state.original is None or not FIRST_PLACEHOLDER_STEP <= step <= LAST_STEP:
         return redirect("/step/1", session_id)
-    context = {"step": step, "state": state, "original": state.original}
-    return with_cookie(templates.TemplateResponse(request, "steps/placeholder.html", context), session_id)
+    return render(
+        request,
+        "steps/placeholder.html",
+        {"original": state.original},
+        step=step,
+        session_id=session_id,
+        state=state,
+        evidence=evidence,
+    )

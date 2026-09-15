@@ -2,32 +2,34 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, Response
 
 from ...plan.models import BudgetStatus, PlanInput, sample_plan
 from ...plan.regions import load_regions, sido_list
 from ...plan.validation import ValidationResult, validate_plan
 from ...review.rules import load_rule_catalog
+from ..dependencies import evidence_state_dep, session_dep
+from ..evidence_state import EvidenceState
 from ..forms import parse_plan_form
-from ..session import COOKIE_NAME, WorkState, store
-from ..templating import redirect, templates, with_cookie
+from ..session import WorkState, store
+from ..templating import redirect, render
 
 router = APIRouter()
-SessionCookie = Annotated[str | None, Cookie(alias=COOKIE_NAME)]
+Session = Annotated[tuple[str, WorkState], Depends(session_dep)]
+Evidence = Annotated[EvidenceState, Depends(evidence_state_dep)]
 
 
 def _render(
     request: Request,
-    session_id: str,
-    state: WorkState,
+    session: tuple[str, WorkState],
+    evidence: EvidenceState,
     result: ValidationResult | None = None,
     status_code: int = 200,
 ) -> Response:
+    session_id, state = session
     plan = state.plan
     context = {
-        "step": 1,
-        "state": state,
         "plan": plan,
         # 제출 전에는 오류를 보여주지 않고, 요약만 현재 입력 기준으로 보여준다
         "errors": result.errors if result else {},
@@ -37,25 +39,32 @@ def _render(
         "rules": load_rule_catalog(),
         "budget_status": BudgetStatus,
     }
-    response = templates.TemplateResponse(request, "steps/input.html", context, status_code=status_code)
-    return with_cookie(response, session_id)
+    return render(
+        request,
+        "steps/input.html",
+        context,
+        step=1,
+        session_id=session_id,
+        state=state,
+        evidence=evidence,
+        status_code=status_code,
+    )
 
 
 @router.get("/")
-def index(session: SessionCookie = None) -> Response:
-    session_id, _ = store.get_or_create(session)
+def index(session: Session) -> Response:
+    session_id, _ = session
     return redirect("/step/1", session_id)
 
 
 @router.get("/step/1", response_class=HTMLResponse)
-def show(request: Request, session: SessionCookie = None) -> Response:
-    session_id, state = store.get_or_create(session)
-    return _render(request, session_id, state)
+def show(request: Request, session: Session, evidence: Evidence) -> Response:
+    return _render(request, session, evidence)
 
 
 @router.post("/step/1")
-async def submit(request: Request, session: SessionCookie = None) -> Response:
-    session_id, state = store.get_or_create(session)
+async def submit(request: Request, session: Session, evidence: Evidence) -> Response:
+    session_id, state = session
     form = await request.form()
     action = form.get("action")
 
@@ -72,14 +81,14 @@ async def submit(request: Request, session: SessionCookie = None) -> Response:
 
     result = validate_plan(state.plan)
     if not result.ok:
-        return _render(request, session_id, state, result, status_code=422)
+        return _render(request, session, evidence, result, status_code=422)
 
     state.start_review()
     return redirect("/step/2", session_id)
 
 
 @router.post("/reset")
-def reset(session: SessionCookie = None) -> Response:
-    session_id, _ = store.get_or_create(session)
+def reset(session: Session) -> Response:
+    session_id, _ = session
     store.reset(session_id)
     return redirect("/step/1", session_id)

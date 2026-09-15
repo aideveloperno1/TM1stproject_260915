@@ -30,6 +30,11 @@
 
 ## 파일별 상세
 
+### 호출 전 필수 확인 (2근거확인화면계획 B-5)
+
+- LLM을 부르기 전에 `web/evidence_state.get_evidence_state()`의 **`blocked`가 False이고 `ok`가 True인지** 확인한다. 아니면 호출하지 않는다
+- `uv run policy-signal-map`은 시작 시 차단하지만, 배포 환경에서 `uvicorn`을 직접 실행하면 시작 차단이 빠지므로 호출 지점에서 한 번 더 막는다
+
 ### `base.py`
 
 ```

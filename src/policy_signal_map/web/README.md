@@ -27,9 +27,11 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 | `session.py` | 있음 (확장 예정) | 세션별 작업 상태 |
 | `forms.py` | 있음 (확장 예정) | 폼 값 해석 |
 | `labels.py` | 있음 | 입력 선택지 문구 |
-| `templating.py` | 있음 | 템플릿 객체, 쿠키·리다이렉트 공통 |
-| `formatters.py` | 예정 (9/17) | 숫자·방향·상태 표시 형식 |
-| `dependencies.py` | 예정 (9/17) | 라우트 공통 의존성 (세션, 근거 파일, 단계 잠금) |
+| `templating.py` | 있음 | 템플릿 객체, 표시 형식 필터 등록, **`render()`**(모든 화면 공통), 쿠키·리다이렉트 |
+| `evidence_state.py` | 있음 | 근거 파일 상태를 한 번 읽어 보관 (`get_evidence_state`), 상단 칩 문구, 실제 자료 + 클라우드 차단 |
+| `dependencies.py` | 있음 | 라우트 공통 의존성: `session_dep`, `evidence_state_dep` |
+| `evidence_view.py` | 예정 (2-2) | 2단계 화면용 데이터 조립 |
+| ~~`formatters.py`~~ | 루트 `formatting.py`로 이동 | 5번 문서 생성도 쓰도록 웹 의존 없는 위치에 둠 |
 
 ## 파일별 상세
 
@@ -54,28 +56,38 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 
 입력 선택지 문구와 단계 이름. 규칙 질문·대안 문구는 여기 두지 않는다 (`resources/rules/`).
 
-### `formatters.py`
+### 표시 형식 필터 (`../formatting.py`)
 
-Jinja2 필터로 등록한다. 표시 규칙은 워크플로우 8-3장을 따른다.
+`templating.py`가 `formatting.FILTERS`를 Jinja2 필터로 등록한다. 규칙은 워크플로우 8-3장, 상세는 [2근거확인화면계획.md 5-1](../../../2근거확인화면계획.md#5-1-policy_signal_mapformattingpy-b-3).
 
-| 필터 | 입력 → 출력 |
+| 필터 | 출력 예 |
 |---|---|
-| `krw_eok` | 원 정수 → "2,106.18억원" 형식 (억원 변환은 화면에서, 8-1장) |
-| `pct` | Fraction/float → 소수 둘째 자리 "7.45%" |
-| `pp_change` | %p 변화 → "+0.13%p", 0이 아니고 절대값 0.01 미만이면 "0.01%p 미만 (증가)" |
-| `growth` | 증감률 → "+10.97%", None이면 "계산 불가" |
-| `direction` | up/down/flat/None → 증가/감소/변화 없음/계산 불가 |
-| `calc_status` | ok/no_data/invalid_input/invalid_denominator → 계산됨/자료 없음/입력 확인 필요/분모 0 · 계산 불가 |
-| `scope_label` | national/sido → "전국 참고 — 특정 지역의 진단이 아님" 등 |
+| `amount(value, unit)` | `2,106.18억원`, `820원`, `0.01억원 미만`, None → `자료 없음` |
+| `pct` | `8.40%`, `0.01% 미만`, None → `계산 불가` |
+| `growth` | `+8.86%`, `0.01% 미만 (증가)`, None → `계산 불가` |
+| `pp_change` | `+0.20%p`, `0.01%p 미만 (증가)`, `0.00%p` |
+| `direction`, `comparison`, `calc_status` | `증가`, `방향 다름`, `분모 0 · 계산 불가` |
+| `month_label`, `pair_label`, `period_label` | `4월`, `1→2월`, `2026년 1~6월` |
 
-- None은 절대 0이나 "0%"로 표시하지 않는다
+- 반올림은 Fraction → Decimal 사사오입. None은 절대 0으로 표시하지 않는다
 - 방향 차이에 빨간색·경고 아이콘 클래스를 붙이지 않는다
+
+### `evidence_state.py`
+
+- `load_evidence_state(environ)`: 설정 → 근거 파일 로드 → 실제 자료 판단 → 클라우드 조합 차단. 예외를 던지지 않고 `EvidenceState(errors, blocked, …)`로 담는다
+- `get_evidence_state()`: 프로세스에서 한 번만 읽는다. 근거 파일을 바꾸면 서버 재시작
+- 화면용 오류 문구에는 서버 전체 경로 대신 파일 이름만 넣고, 원래 문구는 서버 로그에 남긴다
+- `badge`: `시연용 합성 수치 · demo-001` / `실제 분석 자료 · {버전} · 내부 검증용` / `근거 파일 오류`
+
+### `templating.render()`
+
+모든 화면은 `render(request, template, context, step=, session_id=, state=, evidence=)`로 그린다. `base.html`이 쓰는 `step`·`state`·`evidence`를 빠뜨리면 페이지 전체가 템플릿 오류(500)가 나기 때문이다.
 
 ### `dependencies.py`
 
-- `get_session()` : 쿠키 → `(session_id, WorkState)`
-- `get_evidence()` : 앱 시작 시 로드한 근거 파일 (`evidence/loader.py`), 오류면 오류 화면
-- `require_step(n)` : 이전 단계 조건 확인 후 아니면 `/step/1` 리다이렉트
+- `session_dep` : 쿠키 → `(session_id, WorkState)`
+- `evidence_state_dep` : `get_evidence_state()`. 테스트는 `app.dependency_overrides`로 교체 (`tests/conftest.py`)
+- 단계 잠금은 각 라우트에서 명시적으로 확인한다
   - 2·3단계: `original` 있음
   - 4단계: `review_result` 있음
   - 5단계: 미선택·재확인 필요 질문이 없음 → 아니면 4단계로 돌려보내고 이유 표시

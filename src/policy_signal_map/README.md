@@ -36,6 +36,7 @@ llm → review 결과만 사용
 | `__init__.py` | 있음 | `main()`: `uv run policy-signal-map`으로 uvicorn 실행 (127.0.0.1:8000, reload) |
 | `app.py` | 있음 | FastAPI 생성, `/static` 마운트, `web/routes/`의 라우터 등록만 한다. 로직을 두지 않는다 |
 | `paths.py` | 있음 | `PACKAGE_DIR`, `RESOURCES_DIR`, `WEB_DIR` |
+| `formatting.py` | 있음 | 숫자·상태 표시 형식 (억원·%·%p·증감률·방향·상태·기간). 웹 의존 없음. 화면 필터와 5번 문서 생성이 함께 사용 |
 | `config.py` | 있음 | 환경변수 읽기(`load_settings`), 실제 자료 + 클라우드 LLM 차단(`check_llm_data_combination`). 아래 표 참고 |
 | `.env.example` → 저장소 루트 | 있음 | `config.py` 항목 예시. 실제 `.env`는 git 제외, `uv run --env-file .env`로 사용 |
 
