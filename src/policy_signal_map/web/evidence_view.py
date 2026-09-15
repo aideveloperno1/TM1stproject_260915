@@ -16,8 +16,8 @@ from ..evidence.loader import LoadResult, find_record
 from ..evidence.schema import Applicability, EvidenceFile, EvidenceRecord
 from ..evidence.summary import PairSummary, PeriodTotals, period_totals, summarize_pairs
 from ..formatting import HUNDRED_MILLION, amount_unit, month_label, pair_label, period_label
-from ..plan.models import PlanInput, RegionLevel
-from ..plan.regions import region_label
+from ..plan.models import PlanInput
+from ..review.context import region_note, select_main_record
 
 METHOD_LINES = (
     "전체 분모 외국인 비중 = 외국인 결제금액 ÷ 전체 결제금액 × 100",
@@ -105,11 +105,6 @@ def _share(numerator: int | None, denominator: int | None) -> Fraction | None:
     return Fraction(numerator, denominator) * 100
 
 
-def select_main_record(file: EvidenceFile) -> EvidenceRecord | None:
-    """주 근거 레코드. 입력 지역 행정코드와 region_key 연결 규칙(C-2)이 정해지기 전에는 전국만 사용한다."""
-    return find_record(file, "national", "ALL")
-
-
 def build_record_view(record: EvidenceRecord) -> RecordView:
     scope = record.scope
     same_year = scope.period_start[:4] == scope.period_end[:4]
@@ -175,13 +170,6 @@ def summary_sentence(record_view: RecordView) -> str:
     if m >= 1:
         sentence += f" 자료가 부족한 {m}개 구간은 비교하지 않았습니다."
     return sentence
-
-
-def region_note(plan: PlanInput) -> str | None:
-    region = plan.region
-    if region is None or region.level is RegionLevel.NATIONAL:
-        return None
-    return f"전국 참고 자료입니다. 선택한 {region_label(region)}의 소비를 진단한 결과가 아닙니다."
 
 
 # ---------------------------------------------------------------- 차트

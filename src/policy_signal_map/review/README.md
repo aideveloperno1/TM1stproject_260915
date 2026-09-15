@@ -16,11 +16,12 @@
 | 파일 | 상태 | 내용 |
 |---|---|---|
 | `__init__.py` | 있음 | 비어 있음 |
-| `rules.py` | 있음 (확장 예정) | 규칙 원본 JSON 읽기 |
-| `outcome.py` | 예정 (9/17) | 검토 결과 데이터 형태 |
-| `r07_indicator.py` | 예정 (9/17) | R07 금액·비중과 성과지표 |
-| `basic_checks.py` | 예정 (9/17) | R01·R03·R04·R05 기본 검토 |
-| `engine.py` | 예정 (9/17) | 전체 규칙 실행 순서, 중복 질문 묶기, 검토하지 않은 항목 |
+| `rules.py` | 있음 | 규칙 원본 JSON v1.0 읽기 (문구·대안·merge_group·재확인 필드) |
+| `outcome.py` | 있음 | 검토 결과 형태, `no_finding`·`not_reviewed` 구분, `to_llm_summary()` |
+| `context.py` | 있음 | 전국 레코드 선택·범위 표시·지역 안내 (2단계 화면과 공용) |
+| `r07_indicator.py` | 있음 | R07 금액·비중과 성과지표 |
+| `basic_checks.py` | 있음 | R01·R03·R04·R05 기본 검토 |
+| `engine.py` | 있음 | 실행 순서, 규칙 ID·함수 일치 검사, 같은 merge_group 질문 연결 |
 
 ## 파일별 상세
 

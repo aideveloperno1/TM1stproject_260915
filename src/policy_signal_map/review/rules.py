@@ -1,4 +1,8 @@
-"""검토 규칙 원본(resources/rules/review_rules.json)을 읽는다."""
+"""검토 규칙 원본(resources/rules/review_rules.json)을 읽는다.
+
+문구·대안·문서 반영 위치는 JSON이 원본이고, 조건 판단은 규칙 ID별 파이썬 함수가 맡는다.
+사람이 읽는 설명은 docs/review_rules.md이며 규칙 ID가 서로 같아야 한다.
+"""
 
 import json
 from dataclasses import dataclass
@@ -8,6 +12,7 @@ from typing import Literal
 from ..paths import RESOURCES_DIR
 
 RULES_FILE = RESOURCES_DIR / "rules" / "review_rules.json"
+SUPPORTED_VERSIONS = frozenset({"1.0"})
 
 RuleScope = Literal["implement", "basic", "example", "future"]
 
@@ -18,6 +23,19 @@ SCOPE_LABELS: dict[RuleScope, str] = {
     "future": "향후 기능",
 }
 
+# 문구에 쓰지 않는 단어 (판정·단정 표현). docs/review_rules.md 공통 원칙
+FORBIDDEN_WORDS = ("문제", "오류", "위험", "실패", "성공", "잘못")
+
+
+@dataclass(frozen=True)
+class OptionSpec:
+    id: str
+    title: str
+    where: str
+    need: str
+    load: str
+    execution_fields: tuple[str, ...]
+
 
 @dataclass(frozen=True)
 class RuleInfo:
@@ -25,18 +43,69 @@ class RuleInfo:
     title: str
     scope: RuleScope
     summary: str
+    messages: dict[str, str]
+    options: tuple[OptionSpec, ...]
+    related_fields: tuple[str, ...]
+    document_targets: tuple[str, ...]
+    merge_group: str | None
 
     @property
     def scope_label(self) -> str:
         return SCOPE_LABELS[self.scope]
 
+    def message(self, key: str, **values: object) -> str:
+        """JSON 문구에 값을 채운다. 없는 키는 파일 오류로 본다."""
+        try:
+            template = self.messages[key]
+        except KeyError:
+            raise KeyError(f"{self.id} 규칙에 '{key}' 문구가 없습니다 (review_rules.json)") from None
+        return template.format(**values) if values else template
+
+    def option(self, option_id: str) -> OptionSpec | None:
+        return next((o for o in self.options if o.id == option_id), None)
+
 
 @cache
 def load_rule_catalog() -> tuple[RuleInfo, ...]:
     data = json.loads(RULES_FILE.read_text(encoding="utf-8"))
+    if data.get("version") not in SUPPORTED_VERSIONS:
+        raise ValueError(f"지원하지 않는 규칙 파일 버전: {data.get('version')}")
+
     rules = []
     for item in data["rules"]:
         if item["scope"] not in SCOPE_LABELS:
             raise ValueError(f"알 수 없는 규칙 범위: {item['id']} {item['scope']}")
-        rules.append(RuleInfo(item["id"], item["title"], item["scope"], item["summary"]))
+        options = tuple(
+            OptionSpec(
+                id=o["id"],
+                title=o["title"],
+                where=o["where"],
+                need=o["need"],
+                load=o["load"],
+                execution_fields=tuple(o.get("execution_fields", ())),
+            )
+            for o in item.get("options", ())
+        )
+        rules.append(
+            RuleInfo(
+                id=item["id"],
+                title=item["title"],
+                scope=item["scope"],
+                summary=item["summary"],
+                messages=dict(item.get("messages", {})),
+                options=options,
+                related_fields=tuple(item.get("related_fields", ())),
+                document_targets=tuple(item.get("document_targets", ())),
+                merge_group=item.get("merge_group"),
+            )
+        )
     return tuple(rules)
+
+
+@cache
+def rules_by_id() -> dict[str, RuleInfo]:
+    return {rule.id: rule for rule in load_rule_catalog()}
+
+
+def get_rule(rule_id: str) -> RuleInfo:
+    return rules_by_id()[rule_id]

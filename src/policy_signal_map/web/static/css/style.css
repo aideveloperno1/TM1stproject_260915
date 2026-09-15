@@ -866,6 +866,93 @@ textarea.input {
   margin-top: 14px;
 }
 
+/* ---------- 검토 질문 (3단계) ---------- */
+.rule-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+}
+
+.rule-card-question {
+  border-color: var(--primary-line);
+  background: linear-gradient(170deg, #fbfcff, #f7faff);
+}
+
+.rule-card-pending {
+  border-color: rgba(168, 118, 26, 0.35);
+}
+
+.rule-card-held {
+  border-style: dashed;
+}
+
+.rule-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rule-card-id {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.rule-card-kind {
+  padding: 4px 10px;
+  border-radius: 7px;
+  background: var(--tag);
+  font-size: 12px;
+  font-weight: 700;
+  color: #5c6b7f;
+}
+
+.rule-card-pending .rule-card-kind {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.rule-card-message {
+  margin: 12px 0 0;
+  max-width: 820px;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.rule-card-why {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #edf1f7;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.evidence-chip {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.option-preview {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line-2);
+}
+
+.option-preview-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--label);
+}
+
+.option-preview .plain-list {
+  margin-top: 8px;
+}
+
 .error-list {
   margin: 18px 0 0;
   padding-left: 18px;

@@ -17,7 +17,7 @@ router = APIRouter()
 Session = Annotated[tuple[str, WorkState], Depends(session_dep)]
 Evidence = Annotated[EvidenceState, Depends(evidence_state_dep)]
 
-FIRST_PLACEHOLDER_STEP = 3
+FIRST_PLACEHOLDER_STEP = 4
 
 
 @router.get("/step/{step}", response_class=HTMLResponse)

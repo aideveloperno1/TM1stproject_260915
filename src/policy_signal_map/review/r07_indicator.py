@@ -1,0 +1,112 @@
+"""R07 금액·비중과 성과지표 확인 (최종기획서 4장 첫 사례).
+
+판단 순서와 문구 기준: docs/review_rules.md, 3검토질문계획.md 4장.
+"""
+
+from __future__ import annotations
+
+from ..evidence.compare import compare_record
+from ..evidence.schema import EvidenceFile, EvidenceRecord
+from ..evidence.summary import summarize_pairs
+from ..formatting import period_label
+from ..plan.models import Goal, IndicatorUse, Metric, PlanInput
+from .outcome import ReviewOutcome
+from .rules import RuleInfo
+
+CARD_METRICS = (Metric.FOREIGN_SHARE, Metric.FOREIGN_AMOUNT)
+
+# 목표와 지표가 서로 다른 것을 가리키는 조합 (금액 확대 목표 + 비중 지표 등)
+MISMATCH = {
+    (Goal.FOREIGN_AMOUNT, Metric.FOREIGN_SHARE): ("외국인 결제금액 확대", "외국인 결제 비중"),
+    (Goal.FOREIGN_SHARE, Metric.FOREIGN_AMOUNT): ("외국인 결제 비중 확대", "외국인 결제금액"),
+}
+
+
+def applies_to(plan: PlanInput) -> bool:
+    return any(metric in CARD_METRICS for metric in plan.metrics)
+
+
+def _held(rule: RuleInfo, key: str, scope_label: str | None, region_note: str | None, **values: object) -> ReviewOutcome:
+    return ReviewOutcome(
+        rule_id=rule.id,
+        question_key=rule.merge_group or rule.id,
+        kind="held",
+        title=rule.title,
+        message=rule.message(key, **values),
+        scope_label=scope_label,
+        region_note=region_note,
+        related_fields=rule.related_fields,
+    )
+
+
+def _mismatch_prefix(rule: RuleInfo, plan: PlanInput) -> str:
+    for (goal, metric), (goal_label, metric_label) in MISMATCH.items():
+        if goal in plan.goals and metric in plan.metrics:
+            return rule.message("goal_mismatch_prefix", goal_label=goal_label, metric_label=metric_label)
+    return ""
+
+
+def run(
+    rule: RuleInfo,
+    plan: PlanInput,
+    file: EvidenceFile | None,
+    record: EvidenceRecord | None,
+    *,
+    scope_label: str | None,
+    region_note: str | None,
+) -> ReviewOutcome | None:
+    if not applies_to(plan):
+        return None
+    if record is None:
+        return _held(rule, "held_no_record", scope_label, region_note)
+
+    applicability = record.applicability["R07"]
+    if applicability.status == "blocked":
+        return _held(rule, "held_blocked", scope_label, region_note, reason=applicability.reason)
+    if applicability.status == "needs_review":
+        return _held(rule, "held_needs_review", scope_label, region_note, reason=applicability.reason)
+
+    pairs = compare_record(record)
+    summary = summarize_pairs(pairs)
+    if summary.comparable_count == 0:
+        return _held(rule, "held_no_pairs", scope_label, region_note)
+
+    period = period_label(record.scope.period_start, record.scope.period_end)
+    why_key = "why_opposite" if summary.opposite_a_count >= 1 else "why_same"
+    why = rule.message(
+        why_key,
+        period=period,
+        comparable_count=summary.comparable_count,
+        opposite_count=summary.opposite_a_count,
+    )
+
+    if plan.indicator_use is IndicatorUse.REFERENCE:
+        kind, message = "notice", rule.message("notice_reference")
+    elif plan.indicator_use is IndicatorUse.UNKNOWN:
+        kind, message = "question", rule.message("question_unknown")
+    else:
+        kind, message = "question", rule.message("question_direct")
+
+    if kind == "question":
+        message = _mismatch_prefix(rule, plan) + message
+
+    return ReviewOutcome(
+        rule_id=rule.id,
+        question_key=rule.merge_group or rule.id,
+        kind=kind,
+        title=rule.title,
+        message=message,
+        why=why,
+        evidence_ids=(record.evidence_id,),
+        scope_label=scope_label,
+        region_note=region_note,
+        options=rule.options if kind == "question" else (),
+        related_fields=rule.related_fields,
+        observations={
+            "comparable_count": summary.comparable_count,
+            "opposite_a_count": summary.opposite_a_count,
+            "skipped_count": summary.skipped_count,
+            "period": period,
+            "dataset_version": file.dataset_version if file else None,
+        },
+    )

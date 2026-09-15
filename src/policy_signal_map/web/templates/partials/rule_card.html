@@ -1,0 +1,41 @@
+{# 검토 결과 카드. 질문·안내·추가 확정 필요·보류를 구분해 표시하고 판정·경고색을 쓰지 않는다 #}
+{% macro rule_card(outcome, rule_kind_labels) %}
+<article class="rule-card rule-card-{{ outcome.kind }}">
+  <div class="rule-card-head">
+    <span class="rule-card-id">{{ outcome.rule_id }} {{ outcome.title }}</span>
+    <span class="rule-card-kind">{{ rule_kind_labels[outcome.kind] }}</span>
+  </div>
+
+  <p class="rule-card-message">{{ outcome.message }}</p>
+
+  {% if outcome.why %}
+    <p class="rule-card-why"><b>왜 묻나요?</b> {{ outcome.why }}</p>
+  {% endif %}
+
+  {% if outcome.scope_label or outcome.evidence_ids %}
+    <div class="badge-row">
+      {% if outcome.scope_label %}<span class="scope-badge">{{ outcome.scope_label }}</span>{% endif %}
+      {% for evidence_id in outcome.evidence_ids %}
+        <a class="scope-badge evidence-chip" href="/step/2">근거 {{ evidence_id }} ↗</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if outcome.region_note %}<p class="note">{{ outcome.region_note }}</p>{% endif %}
+
+  {% if outcome.related_rule_ids %}
+    <p class="note">함께 확인: {{ outcome.related_rule_ids | join(", ") }} · 같은 자료를 묻는 질문이라 보완 선택에서 한 번만 입력하면 됩니다.</p>
+  {% endif %}
+
+  {% if outcome.options %}
+    <div class="option-preview">
+      <span class="option-preview-title">보완 선택에서 고를 수 있는 방법</span>
+      <ul class="plain-list">
+        {% for option in outcome.options %}
+          <li>{{ option.id }} {{ option.title }} — 바뀌는 곳 {{ option.where }} · 필요 자료 {{ option.need }} · 운영 부담 {{ option.load }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</article>
+{% endmacro %}

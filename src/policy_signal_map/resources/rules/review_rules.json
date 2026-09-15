@@ -1,48 +1,135 @@
 {
-  "version": "0.1",
-  "description": "검토 규칙 원본. 사람이 읽는 설명은 docs/review_rules.md. 조건·질문·대안·문서 반영 위치는 규칙 구현 시 추가한다.",
+  "version": "1.0",
+  "description": "검토 규칙 원본. 사람이 읽는 설명은 docs/review_rules.md. 조건 판단은 review/의 규칙 ID별 함수가 맡는다.",
   "rules": [
     {
       "id": "R07",
       "title": "금액·비중과 성과지표 확인",
       "scope": "implement",
-      "summary": "성과지표가 금액·비중 목표와 맞는지, 두 지표의 방향 차이 확인"
+      "summary": "성과지표가 금액·비중 목표와 맞는지, 두 지표의 방향 차이 확인",
+      "merge_group": "participation_data",
+      "related_fields": ["goals", "metrics", "indicator_use", "region", "target"],
+      "document_targets": ["7. 성과 측정계획", "8. 추가 확인사항"],
+      "messages": {
+        "question_direct": "외국인 결제 비중은 외국인 결제금액뿐 아니라 전체 결제금액의 변화에도 영향을 받습니다. 이 사업에서 확인하려는 것은 외국인 결제금액 확대인가요, 전체 결제에서 외국인 비중 확대인가요? 직접 성과평가에 쓴다면 참여자의 쿠폰 사용·정산 자료를 따로 모을 수 있는지도 알려 주세요.",
+        "question_unknown": "선택한 지표를 참고 현황으로 쓸지, 사업 성과를 직접 평가하는 기준으로 쓸지에 따라 확인할 자료가 달라집니다. 어느 쪽에 가까운지 알려 주세요.",
+        "notice_reference": "참고 현황으로 사용하는 지표입니다. 성과 판단에 쓰지 않으므로 그대로 두어도 됩니다. 문서에는 분모 기준(전체·미상 제외)과 전국 참고 범위를 적어 두는 것만 권합니다.",
+        "goal_mismatch_prefix": "입력한 목표는 ‘{goal_label}’인데 성과지표는 ‘{metric_label}’입니다. 두 가지가 가리키는 방향이 다를 수 있습니다. ",
+        "why_opposite": "{period} 전국 자료에서 비교 가능한 {comparable_count}개 인접 월 구간 중 {opposite_count}개 구간에서 외국인 결제금액과 전체 분모 비중의 변화 방향이 달랐습니다.",
+        "why_same": "{period} 전국 자료에서는 두 지표가 서로 반대 방향으로 움직이지 않았습니다. 다만 금액과 비중은 서로 다른 질문에 답하므로 어떤 지표로 성과를 확인할지는 정해 두는 편이 좋습니다.",
+        "held_no_record": "전국 근거 자료가 없어 금액·비중 비교를 보류합니다. 데이터 담당에게 확인해 주세요.",
+        "held_blocked": "현재 자료로 금액·비중 비교를 사용할 수 없습니다. 사유: {reason}",
+        "held_needs_review": "근거 기반 결론을 보류합니다. 확인할 내용: {reason}",
+        "held_no_pairs": "비교 가능한 인접 월 구간이 없어 금액·비중 방향 비교를 보류합니다."
+      },
+      "options": [
+        {
+          "id": "A",
+          "title": "참여 실적 추가",
+          "where": "7. 성과 측정계획",
+          "need": "쿠폰 발급·사용·정산 자료",
+          "load": "중",
+          "execution_fields": ["collect_items", "availability", "owner", "cycle"]
+        },
+        {
+          "id": "B",
+          "title": "해석 조건 명시",
+          "where": "7. 성과 측정계획",
+          "need": "없음",
+          "load": "낮음",
+          "execution_fields": []
+        },
+        {
+          "id": "C",
+          "title": "자료 확보 전",
+          "where": "8. 추가 확인사항",
+          "need": "협의 대상",
+          "load": "낮음",
+          "execution_fields": []
+        },
+        {
+          "id": "D",
+          "title": "정밀 분석 요청서 초안",
+          "where": "별첨 3",
+          "need": "BC 협의",
+          "load": "비용 확인 필요",
+          "execution_fields": []
+        }
+      ]
     },
     {
       "id": "R01",
       "title": "목표와 사용처 확인",
       "scope": "basic",
-      "summary": "목표와 쿠폰 사용처가 맞는지 확인"
+      "summary": "목표와 쿠폰 사용처가 맞는지 확인",
+      "related_fields": ["goals", "usage_place"],
+      "document_targets": ["4. 혜택·사용처"],
+      "messages": {
+        "question": "참여 상점 이용 확대가 목표라면 쿠폰을 어디에서 쓸 수 있는지가 함께 정해져야 합니다. 사용처 범위(관내 참여 점포, 특정 상권 등)를 알려 주세요."
+      },
+      "options": []
     },
     {
       "id": "R03",
       "title": "대상과 자료 확인",
       "scope": "basic",
-      "summary": "대상과 성과 자료의 범위가 맞는지 확인"
+      "summary": "대상과 성과 자료의 범위가 맞는지 확인",
+      "merge_group": "participation_data",
+      "related_fields": ["target", "metrics"],
+      "document_targets": ["2. 목적·대상", "7. 성과 측정계획"],
+      "messages": {
+        "question": "사업 대상은 관광객인데 성과지표는 외국인 전체의 카드 소비입니다. 제공 자료는 관광객과 거주 외국인을 구분하지 않습니다. 참여자를 확인할 다른 자료를 함께 모을 수 있는지 알려 주세요."
+      },
+      "options": []
     },
     {
       "id": "R04",
       "title": "기간 확인",
       "scope": "basic",
-      "summary": "사업 기간과 집계 주기가 맞는지 확인"
+      "summary": "사업 기간과 집계 주기가 맞는지 확인",
+      "merge_group": "participation_data",
+      "related_fields": ["period", "indicator_use"],
+      "document_targets": ["3. 일정", "7. 성과 측정계획"],
+      "messages": {
+        "question": "사업 기간이 한 달이 되지 않습니다. 제공 자료는 월 단위 집계라 사업 기간만 따로 떼어 보기 어렵습니다. 기간에 맞춘 별도 실적을 모을 수 있는지, 확인 주기를 어떻게 할지 알려 주세요."
+      },
+      "options": []
     },
     {
       "id": "R05",
       "title": "빠진 운영 조건 확인",
       "scope": "basic",
-      "summary": "예산·사용처·정산 등 운영 조건 누락 표시"
+      "summary": "예산·사용처·정산 등 운영 조건 누락 표시",
+      "related_fields": ["budget", "usage_place", "data_status"],
+      "document_targets": ["6. 예산 상태", "8. 추가 확인사항"],
+      "messages": {
+        "pending": "다음 항목이 아직 정해지지 않았습니다. 보완 기획안에 ‘추가 확정 필요’로 남깁니다: {pending_list}"
+      },
+      "options": []
     },
     {
       "id": "R06",
       "title": "고급 소비 근거 확인",
       "scope": "example",
-      "summary": "고액 소비 근거 — 분석 예시로 제시"
+      "summary": "고액 소비 근거 — 분석 예시로 제시",
+      "related_fields": [],
+      "document_targets": [],
+      "messages": {
+        "not_reviewed": "고액 소비 근거는 이번 구현에서 분석 예시로만 제시합니다. 업종·월 구성을 맞춘 비교값과 해석 한계가 필요합니다."
+      },
+      "options": []
     },
     {
       "id": "R02",
       "title": "업종 후보 검토",
       "scope": "future",
-      "summary": "업종 후보 — 지역 기준 확인 후 적용"
+      "summary": "업종 후보 — 지역 기준 확인 후 적용",
+      "related_fields": [],
+      "document_targets": [],
+      "messages": {
+        "not_reviewed": "업종 후보 검토는 지역 기준(가맹점 소재지 등)과 운영 자료가 확인된 뒤에 적용합니다."
+      },
+      "options": []
     }
   ]
 }
