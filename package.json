@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:regions": "node scripts/build-regions.mjs"
   },
   "devDependencies": {
     "typescript": "~6.0.2",
