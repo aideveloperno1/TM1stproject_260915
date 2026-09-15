@@ -30,7 +30,7 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 | `templating.py` | 있음 | 템플릿 객체, 표시 형식 필터 등록, **`render()`**(모든 화면 공통), 쿠키·리다이렉트 |
 | `evidence_state.py` | 있음 | 근거 파일 상태를 한 번 읽어 보관 (`get_evidence_state`), 상단 칩 문구, 실제 자료 + 클라우드 차단 |
 | `dependencies.py` | 있음 | 라우트 공통 의존성: `session_dep`, `evidence_state_dep` |
-| `evidence_view.py` | 예정 (2-2) | 2단계 화면용 데이터 조립 |
+| `evidence_view.py` | 있음 | 2단계 화면용 데이터: 레코드 선택(전국), 금액 단위, 적용 상태별 표시 여부, 요약 문장, 차트 데이터(JSON 형식만), 보류 사례(합성 파일만) |
 | ~~`formatters.py`~~ | 루트 `formatting.py`로 이동 | 5번 문서 생성도 쓰도록 웹 의존 없는 위치에 둠 |
 
 ## 파일별 상세
