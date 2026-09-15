@@ -14,7 +14,7 @@
     <header class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="/step/1"><span class="brand-mark"></span><span>소비 시그널 정책맵</span></a>
-        <span class="tag">시연용 합성 수치</span>
+        <span class="tag {{ 'tag-error' if not evidence.ok }}" data-evidence-badge>{{ evidence.badge }}</span>
         <span class="spacer"></span>
         <form method="post" action="/reset">
           <button type="submit" class="btn btn-ghost">처음으로</button>
@@ -37,6 +37,9 @@
       </nav>
     </header>
     <main class="page">{% block content %}{% endblock %}</main>
+    <footer class="site-foot">
+      {% if evidence.ok and not evidence.is_real %}화면의 수치는 시연용 합성 수치입니다 · {% elif evidence.is_real %}실제 분석 자료 · 내부 검증용 · {% endif %}BC카드 공식 서비스가 아닙니다 · 공모전 제안용
+    </footer>
     {% block scripts %}{% endblock %}
   </body>
 </html>

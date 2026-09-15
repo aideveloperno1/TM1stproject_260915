@@ -65,14 +65,14 @@
 | 시험 | 기대 결과 | 결과 |
 |---|---|---|
 | GENDER_CD=x와 AGE_CD=x가 섞임 | U는 성별 컬럼 미상만 집계 | 데이터 담당 소관 (원본 집계) |
-| 숫자·코드 오류 | invalid_input과 사유 표시 | 계산 계층 통과 9/16 (`test_evidence_loader`) · 화면 표시는 2단계 |
-| 분모 0·자료 없음 | null과 정확한 상태, 나누기 오류 없음 | 계산 계층 통과 9/16 (`test_evidence_loader`, `test_evidence_compare`) · 화면 표시는 2단계 |
-| 미상 0 또는 관측 행 없음 | 값과 관측 상태를 구분, 실제 0 단정 없음 | 계산 계층 통과 9/16 (no_data에 0 거부, 관측 행 없음 경고 사례) · 화면 표시는 2단계 |
-| 비교 A / 비교 B | 별도 결과로 계산·표시 | 계산 통과 9/16 (`test_comparison_b_is_independent_from_a`) · 화면 표시는 2단계 |
-| 이전 F=0·변화 없음·월 누락 | 증감률 null·반대 아님·비교 보류 | 계산 통과 9/16 (`test_evidence_compare`) |
-| 아주 작은 방향 차이 | 중립적 표시, 강한 경고·자동 수정 없음 | 방향 유지 계산 통과 9/16 · "0.01%p 미만" 표시는 2-1 |
-| 방향이 같은 두 기간 | 반대 방향 예시 문구를 복사하지 않음 | |
-| 전국 자료 + 특정 지역 기획 | 전국 참고 표시 | |
+| 숫자·코드 오류 | invalid_input과 사유 표시 | 통과 9/16: 계산(`test_evidence_loader`) · 화면은 오류 화면 503에 수치 없는 문구 (`test_step_two_error_page_when_evidence_fails`) |
+| 분모 0·자료 없음 | null과 정확한 상태, 나누기 오류 없음 | 통과 9/16: 계산 + 화면 "계산 불가"·"분모 0 · 계산 불가"·보류 구간 (`test_step_two_expected_values`) |
+| 미상 0 또는 관측 행 없음 | 값과 관측 상태를 구분, 실제 0 단정 없음 | 통과 9/16: no_data에 0 거부, 화면 "자료 없음", 0이 아닌 작은 값은 "0.01 미만" (`test_small_nonzero_values_are_not_shown_as_zero`) |
+| 비교 A / 비교 B | 별도 결과로 계산·표시 | 통과 9/16: 계산 + 구간 표의 별도 열 |
+| 이전 F=0·변화 없음·월 누락 | 증감률 null·반대 아님·비교 보류 | 통과 9/16 (`test_evidence_compare`, 화면 "계산 불가"·"보류 — 사유") |
+| 아주 작은 방향 차이 | 중립적 표시, 강한 경고·자동 수정 없음 | 통과 9/16: 화면 "0.01%p 미만 (증가)", 경고 클래스 없음 (`test_step_two_shows_tiny_change_label`, `test_step_two_has_no_red_warning_classes`) |
+| 방향이 같은 두 기간 | 반대 방향 예시 문구를 복사하지 않음 | 2단계 요약 문장 통과 9/16 (`test_same_direction_sentence_has_no_opposite_wording`) · 3단계 질문 문구는 3번에서 |
+| 전국 자료 + 특정 지역 기획 | 전국 참고 표시 | 2단계 통과 9/16 (범위 칩·지역 안내 문구, `test_region_note_for_sigungu_plan`) · 3·5단계는 해당 작업에서 |
 | 검증 시도 자료 + 시군구 기획 | 넓은 범위 참고 표시, R02 자동 활성화 없음 | |
 | 참고용 지표 | 불필요한 직접 성과 오류 없음 | |
 | 자료 수집 미정 | 추가 확정 필요 표시 | |
@@ -90,6 +90,7 @@
 | 9/15 | 폴더 구조 전환: plan/·review/·web/(routes·templates·static)·resources/ 분리, 규칙 표시를 `review_rules.json`에서 읽도록 변경, 테스트를 검증·화면 흐름으로 분리, `../Analysis/` 폴더와 안내 README 생성 | `uv run pytest` 18개 통과, 지역 목록 재생성 결과 변경 없음, 실행 중 서버에서 입력 화면·규칙 목록·정적 파일 응답 확인 |
 | 9/16 | 서비스 완성 기준 폴더 전체 생성(evidence·choices·document·llm·web 하위·resources 하위·tests/fixtures·docs·private 등 26개), 폴더마다 README.md에 만들 파일·상세 사양·원칙·테스트·일정 작성. `private/`는 README만 추적되도록 `.gitignore` 조정 | 모든 폴더 README 존재 확인, `git add --dry-run`에서 private는 README만, `uv run pytest` 18개 통과 |
 | 9/16 | 1. 근거 계산 계층 완료 (계획 검토 11건 반영): 설정(`config.py`, 실제 자료+클라우드 LLM 차단), 근거 파일 형태·검증(수치 비노출 오류 문구, 규칙 선행 조건)·로더, 경계 사례 22개(생성 스크립트), 비교 A/B(정수 교차곱)·기간 요약, 합성 근거 파일 demo-001, 공개 자료 검사(한글 경로·원자료 csv 포함)·의존 방향 검사 | `uv run pytest` 119개 통과, `check_public_bundle.py` 추적 파일 106개 위반 0, 금지 import 임시 삽입 시 경계 테스트 실패 후 되돌려 통과 확인. 소수점 판정이 틀리는 큰 금액 사례에서 교차곱 정답 확인 |
+| 9/16 | 2. 근거 확인 화면 완료 (계획 검토 13건 반영): 표시 형식(`formatting.py`, 사사오입·0.01 미만), 근거 상태 보관·오류 화면(전체 경로 비노출)·실제 자료+클라우드 시작 차단, 공통 렌더링, 화면 데이터 조립(요약 문장 3종, blocked 수치 숨김, 보류 사례는 합성만), `/step/2` 화면(차트 SRI·대체 문구, 월별·구간 표), 상단 자료 칩·하단 고지, 테스트 격리(`conftest.py`) | `uv run pytest` 193개 통과(셸에 PSM_ 변수 설정해도 동일), 공개 자료 검사 위반 0, 실제 자료+클라우드로 `uv run policy-signal-map` 실행 시 종료 코드 1, 브라우저: 계획서 9장 값과 화면 일치·차트 2개·분모 전환·보류 사례·CDN 주소를 임시로 틀리게 해 대체 문구 확인 후 복구·콘솔 오류 없음. 400px 폭에서 본문이 766px로 넓어지는 문제를 발견해 수정 후 381px 확인 |
 
 ## 6. 남은 작업·막힌 결정
 
