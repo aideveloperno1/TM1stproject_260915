@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% macro req(required) -%}
+  {% if required %}<span class="req">필수</span>{% else %}<span class="opt">선택</span>{% endif %}
+{%- endmacro %}
+
+{% macro error(key) -%}
+  {% if errors.get(key) %}<p class="error">{{ errors[key] }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro text_field(name, label, required, placeholder, value) -%}
+  <label class="field {{ 'has-error' if errors.get(name) }}">
+    <span class="label">{{ label }} {{ req(required) }}</span>
+    <input class="input" type="text" name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}" />
+    {{ error(name) }}
+  </label>
+{%- endmacro %}
+
+{% block content %}
+{% set region = plan.region %}
+{% set level = region.level.value if region else "" %}
+<div class="layout-main-side">
+  <form class="card card-lg" id="plan-form" method="post" action="/step/1" novalidate>
+    <div class="card-head">
+      <div>
+        <h1 class="title">기획 입력</h1>
+        <p class="subtitle">입력한 내용만으로 검토합니다. 빈 값은 추측하지 않습니다.</p>
+      </div>
+      <div class="head-actions">
+        <button type="submit" class="btn btn-ghost" name="action" value="sample" formnovalidate>예시 기획 채우기</button>
+        <button type="submit" class="btn btn-ghost" name="action" value="clear" formnovalidate>모두 지우기</button>
+      </div>
+    </div>
+
+    {% if errors %}
+      <p class="alert">필수 항목 {{ errors | length }}개를 확인해 주세요.</p>
+    {% endif %}
+
+    <div class="grid-fields">
+      {{ text_field("name", "사업명", true, "예: 하반기 외국인 소비지원 쿠폰", plan.name) }}
+      {{ text_field("target", "사업 대상", true, "예: 외국인 전체, 방한 관광객", plan.target) }}
+    </div>
+
+    <fieldset class="field {{ 'has-error' if errors.get('goals') or errors.get('goal_other') }}">
+      <legend class="label">사업 목표 {{ req(true) }} <span class="hint">여러 개 선택 가능</span></legend>
+      <div class="chips">
+        {% for key, label in labels.GOAL_LABELS.items() %}
+          <label class="chip">
+            <input type="checkbox" name="goals" value="{{ key.value }}" {{ "checked" if key in plan.goals }} data-toggle-other="goal" />
+            <span>{{ label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      <div data-other="goal" {{ "hidden" if "other" not in plan.goals }}>
+        <input class="input" name="goal_other" value="{{ plan.goal_other }}" placeholder="기타 목표를 적어 주세요" />
+        <p class="note">기타 목표에는 일부 검토만 적용됩니다.</p>
+      </div>
+      {{ error("goals") }}{{ error("goal_other") }}
+    </fieldset>
+
+    <fieldset class="field {{ 'has-error' if errors.get('region') }}">
+      <legend class="label">지역 {{ req(true) }}</legend>
+      <div class="region-row">
+        <div class="segmented" role="radiogroup">
+          {% for value, label in [("national", "전국"), ("sido", "시도"), ("sigungu", "시군구")] %}
+            <label class="seg">
+              <input type="radio" name="region_level" value="{{ value }}" {{ "checked" if level == value }} />
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        <select class="input" name="sido" {{ "hidden" if level not in ("sido", "sigungu") }}>
+          <option value="">시도 선택</option>
+          {% for sido in sido_list %}
+            <option value="{{ sido.code }}" {{ "selected" if region and region.sido_code == sido.code }}>{{ sido.name }}</option>
+          {% endfor %}
+        </select>
+        <select class="input" name="sigungu" {{ "hidden" if level != "sigungu" }}>
+          <option value="">시군구 선택</option>
+          {% for sido in sido_list if region and sido.code == region.sido_code %}
+            {% for g in sido.sigungu %}
+              <option value="{{ g.code }}" {{ "selected" if region.sigungu_code == g.code }}>{{ g.name }}</option>
+            {% endfor %}
+          {% endfor %}
+        </select>
+      </div>
+      <p class="note" data-note="region" {{ "hidden" if level not in ("sido", "sigungu") }}>
+        카드 소비 근거는 전국 자료부터 제공합니다. 선택한 지역의 진단이 아니라 전국 참고 자료로 표시됩니다.
+      </p>
+      {{ error("region") }}
+    </fieldset>
+
+    <div class="grid-fields">
+      <fieldset class="field {{ 'has-error' if errors.get('period') }}">
+        <legend class="label">사업 기간 {{ req(true) }}</legend>
+        <div class="period-row">
+          <input class="input" type="date" name="period_start" value="{{ plan.period_start }}" aria-label="시작일" />
+          <span class="muted">~</span>
+          <input class="input" type="date" name="period_end" value="{{ plan.period_end }}" aria-label="종료일" />
+        </div>
+        {{ error("period") }}
+      </fieldset>
+
+      <fieldset class="field {{ 'has-error' if errors.get('budget') }}">
+        <legend class="label">예산 {{ req(false) }}</legend>
+        {% set undecided = plan.budget.status == budget_status.UNDECIDED %}
+        <div class="budget-row">
+          <input class="input" type="text" inputmode="numeric" name="budget_krw"
+                 value="{{ plan.budget.raw if plan.budget.status == budget_status.AMOUNT }}"
+                 placeholder="원 단위 금액" {{ "disabled" if undecided }} />
+          <label class="check"><input type="checkbox" name="budget_undecided" value="1" {{ "checked" if undecided }} /> 미정</label>
+        </div>
+        <p class="note" data-note="budget">
+          {%- if undecided -%}미정은 0원과 다르게 기록되며 기획안에 ‘추가 확정 필요’로 남습니다.
+          {%- elif plan.budget.krw is not none -%}{{ "{:,}".format(plan.budget.krw) }}원{%- endif -%}
+        </p>
+        {{ error("budget") }}
+      </fieldset>
+    </div>
+
+    <div class="grid-fields">
+      {{ text_field("usage_place", "쿠폰 사용처", false, "예: 관내 참여 점포", plan.usage_place) }}
+      <label class="field">
+        <span class="label">자료 확보 상태 {{ req(false) }}</span>
+        <select class="input" name="data_status">
+          <option value="">선택 안 함</option>
+          {% for key, label in labels.DATA_STATUS_LABELS.items() %}
+            <option value="{{ key.value }}" {{ "selected" if plan.data_status == key }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+
+    <div class="emphasis">
+      <fieldset class="field {{ 'has-error' if errors.get('metrics') or errors.get('metric_other') }}">
+        <legend class="label-strong"><span class="dot"></span>현재 성과지표 {{ req(true) }} <span class="hint">여러 개 선택 가능</span></legend>
+        <div class="chips">
+          {% for key, label in labels.METRIC_LABELS.items() %}
+            <label class="chip">
+              <input type="checkbox" name="metrics" value="{{ key.value }}" {{ "checked" if key in plan.metrics }} data-toggle-other="metric" />
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        <div data-other="metric" {{ "hidden" if "other" not in plan.metrics }}>
+          <input class="input" name="metric_other" value="{{ plan.metric_other }}" placeholder="기타 지표를 적어 주세요" />
+        </div>
+        {{ error("metrics") }}{{ error("metric_other") }}
+      </fieldset>
+
+      <fieldset class="field {{ 'has-error' if errors.get('indicator_use') }}">
+        <legend class="label-strong">이 지표를 어떻게 쓰나요? {{ req(true) }}</legend>
+        <div class="chips">
+          {% for key, label in labels.INDICATOR_USE_LABELS.items() %}
+            <label class="chip">
+              <input type="radio" name="indicator_use" value="{{ key.value }}" {{ "checked" if plan.indicator_use == key }}
+                     data-note-text="{{ labels.INDICATOR_USE_NOTES[key] }}" />
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        <p class="note" data-note="indicator_use">{{ labels.INDICATOR_USE_NOTES[plan.indicator_use] if plan.indicator_use }}</p>
+        {{ error("indicator_use") }}
+      </fieldset>
+    </div>
+
+    <label class="field">
+      <span class="label">변경 불가 조건 {{ req(false) }}</span>
+      <textarea class="input" name="fixed_conditions" rows="3" placeholder="예: 지원 금액은 1인 1만원으로 고정, 사업 기간 변경 불가">{{ plan.fixed_conditions }}</textarea>
+    </label>
+
+    <div class="form-foot">
+      <p class="muted small">작업 내용은 서버에 임시로만 보관되며, 서버가 다시 시작되면 초기화됩니다.</p>
+      <button type="submit" class="btn btn-primary" name="action" value="submit">검토 시작 →</button>
+    </div>
+  </form>
+
+  <aside class="side">
+    <div class="card">
+      <h2 class="side-title">입력 상태</h2>
+      {% set missing = summary.errors | length %}
+      <div class="summary-row">
+        <span>필수 항목</span>
+        <b class="{{ 'text-warn' if missing else 'text-ok' }}">{{ missing ~ "개 확인 필요" if missing else "모두 입력됨" }}</b>
+      </div>
+      <div class="summary-row">
+        <span>추가 확정 필요로 남을 항목</span>
+        <b>{{ summary.pending | length }}개</b>
+      </div>
+      {% if summary.pending %}
+        <div class="pending-list">
+          {% for item in summary.pending %}<span class="badge-warn">{{ item }}</span>{% endfor %}
+        </div>
+      {% endif %}
+      <p class="side-foot">마지막으로 불러오거나 제출한 입력 기준입니다.</p>
+    </div>
+    <div class="card">
+      <h2 class="side-title">검토 예정 규칙</h2>
+      <div class="rule-list">
+        {% for rule_id, status, text in labels.RULES %}
+          <div class="rule rule-{{ status }}">
+            <div class="rule-id">{{ rule_id }} · {{ labels.RULE_STATUS_LABELS[status] }}</div>
+            <div class="rule-text">{{ text }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      <p class="side-foot">‘문제없음’과 ‘검토하지 않음’을 구분해 결과 화면에 표시합니다.</p>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script id="regions-data" type="application/json">{{ regions_json | tojson }}</script>
+<script src="{{ url_for('static', path='input.js') }}"></script>
+{% endblock %}

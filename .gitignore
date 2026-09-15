@@ -1,24 +1,13 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+dist/
+*.egg-info/
 
-node_modules
-dist
-dist-ssr
-*.local
+# 실제 분석 근거 파일은 공개 코드에 넣지 않는다
+private/
 
-# Editor directories and files
 .vscode/*
-!.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?

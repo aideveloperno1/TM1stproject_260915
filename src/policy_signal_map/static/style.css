@@ -91,7 +91,26 @@ textarea {
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.28);
 }
 
-.tag-mono {
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.topbar form {
+  margin: 0;
+}
+
+.alert {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff4ed;
+  color: var(--error);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.tag {
   padding: 4px 9px;
   border-radius: 7px;
   background: var(--tag);
@@ -128,7 +147,7 @@ textarea {
   text-align: left;
 }
 
-.rail-item:disabled {
+.rail-item.locked {
   cursor: not-allowed;
   opacity: 0.6;
 }
