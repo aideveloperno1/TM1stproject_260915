@@ -5,8 +5,12 @@ __pycache__/
 dist/
 *.egg-info/
 
-# 실제 분석 근거 파일은 공개 코드에 넣지 않는다
+# 공개 저장소: 실제 분석 근거 파일과 비밀 설정은 절대 올리지 않는다
 private/
+*_real_*.json
+.env
+.env.*
+!.env.example
 
 .vscode/*
 .idea/

@@ -15,7 +15,8 @@
 | 폴더 구조 | 기능별 패키지(plan·evidence·review·choices·document·llm)와 웹 계층(web) 분리, 코드가 읽는 자료는 `resources/`. 의존 방향 web → document → choices → review → evidence·plan, llm은 review 결과만 사용. 상세는 README | 결정(개발) |
 | 데이터 담당 산출물 위치 | `1차공모\Analysis\` (data_notes.md, 분석 코드). 서비스와는 `review_evidence.json`만 주고받음 | 결정(개발), 데이터 담당 공유 필요 |
 | 개발 환경 | uv + Python 3.12 (`.python-version`), 의존성은 `pyproject.toml`·`uv.lock` | 결정(개발) |
-| 코드 저장소 | 로컬 git으로 이력 관리. GitHub private 저장소 연결은 개발 담당이 나중에 진행 | 결정(개발) |
+| 코드 저장소 | GitHub **public** 저장소 https://github.com/aideveloperno1/TM1stproject_260915 (9/15 연결·공개 전환). 실제 분석 근거 파일(`private/`, `*_real_*.json`)과 `.env`(API 키)는 `.gitignore`로 제외 | 결정(개발) |
+| 라이선스 | 원격 초기 커밋의 GPL v3 유지 중. 공모전 제출·협업 조건과 맞는지 확인 필요 | 미정 |
 | 지역 선택 목록 출처 | `데이터/2` 주민등록인구 CSV(공개 자료)의 시도·시군구 이름. 카드 CSV는 사용하지 않음 | 결정(개발) |
 | 화면 스타일 | 직접 작성한 CSS. 디자인은 `기획서 보완 서비스 랜딩페이지` 폴더(정책맵 랜딩·워크스페이스 시안) 참고 | 결정(개발) |
 | 기술 방식 | 전부 Python: FastAPI + Jinja2 템플릿(서버 렌더링) + 화면 반응용 소량 JS. 테스트는 pytest. (9/15 Vite + TypeScript에서 변경) | 결정(개발) |
