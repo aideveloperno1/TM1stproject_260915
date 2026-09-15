@@ -1,0 +1,48 @@
+{
+  "version": "0.1",
+  "description": "검토 규칙 원본. 사람이 읽는 설명은 docs/review_rules.md. 조건·질문·대안·문서 반영 위치는 규칙 구현 시 추가한다.",
+  "rules": [
+    {
+      "id": "R07",
+      "title": "금액·비중과 성과지표 확인",
+      "scope": "implement",
+      "summary": "성과지표가 금액·비중 목표와 맞는지, 두 지표의 방향 차이 확인"
+    },
+    {
+      "id": "R01",
+      "title": "목표와 사용처 확인",
+      "scope": "basic",
+      "summary": "목표와 쿠폰 사용처가 맞는지 확인"
+    },
+    {
+      "id": "R03",
+      "title": "대상과 자료 확인",
+      "scope": "basic",
+      "summary": "대상과 성과 자료의 범위가 맞는지 확인"
+    },
+    {
+      "id": "R04",
+      "title": "기간 확인",
+      "scope": "basic",
+      "summary": "사업 기간과 집계 주기가 맞는지 확인"
+    },
+    {
+      "id": "R05",
+      "title": "빠진 운영 조건 확인",
+      "scope": "basic",
+      "summary": "예산·사용처·정산 등 운영 조건 누락 표시"
+    },
+    {
+      "id": "R06",
+      "title": "고급 소비 근거 확인",
+      "scope": "example",
+      "summary": "고액 소비 근거 — 분석 예시로 제시"
+    },
+    {
+      "id": "R02",
+      "title": "업종 후보 검토",
+      "scope": "future",
+      "summary": "업종 후보 — 지역 기준 확인 후 적용"
+    }
+  ]
+}

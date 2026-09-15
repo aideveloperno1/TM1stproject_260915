@@ -9,7 +9,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE.parent.parent / "데이터" / "2" / "202601_202606_주민등록인구및세대현황_월간.csv"
-OUT = HERE.parent / "src" / "policy_signal_map" / "data" / "regions.json"
+OUT = HERE.parent / "src" / "policy_signal_map" / "resources" / "regions.json"
 
 JUNE_TOTAL_COLUMN = "2026년06월_총인구수"
 

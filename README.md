@@ -18,20 +18,37 @@ uv run python scripts/build_regions.py    # 지역 선택 목록 다시 만들�
 
 ## 구조
 
+순수 로직(plan·evidence·review·choices·document)과 웹 계층(web)을 나눈다. 의존 방향은 한쪽으로만 간다.
+
+```
+web → document → choices → review → evidence, plan
+llm → review 결과만 사용 (evidence 직접 사용 금지)
+```
+
 ```
 src/policy_signal_map/
-  app.py          라우트 (단계별 화면)
-  models.py       기획 입력 데이터 형태
-  forms.py        폼 값 → 기획 입력
-  validation.py   필수 항목 검증, 추가 확정 필요 항목
-  session.py      작업 상태 보관 (서버 메모리)
-  regions.py      시도·시군구 목록
-  labels.py       화면 문구·검토 규칙 표시
-  data/           regions.json (공개 주민등록인구 CSV에서 생성)
-  templates/      Jinja2 화면
-  static/         CSS, 화면 반응용 JS
-tests/            pytest
-private/          실제 분석 근거 파일 (git 제외, 공개 배포 금지)
+  app.py              FastAPI 생성, 라우터 등록
+  paths.py            패키지 내 경로
+  plan/               S01 기획 입력: models, validation, regions
+  evidence/           분석 근거 읽기·검증, 비교 A/B 계산        (구현 예정)
+  review/             검토 규칙: rules (규칙 목록 읽기)
+  choices/            S03 보완 선택                              (구현 예정)
+  document/           S04·S05 보완 기획안 Markdown               (구현 예정)
+  llm/                C 단계 LLM 연결                            (구현 예정)
+  web/
+    session.py        작업 상태 보관 (서버 메모리)
+    forms.py          폼 값 → 기획 입력
+    labels.py         화면 선택지 문구
+    templating.py     템플릿·리다이렉트 공통
+    routes/           input.py, steps.py(2~5단계 임시)
+    templates/        base.html, steps/*.html
+    static/           css/, js/
+  resources/          regions.json, rules/review_rules.json (규칙 원본)
+tests/                pytest (helpers.py 공통)
+scripts/              build_regions.py
+private/              실제 분석 근거 파일 (git 제외, 공개 배포 금지)
 ```
+
+데이터 분석 담당의 작업은 `../Analysis/`에 둔다. 두 폴더 사이에서는 `review_evidence.json`만 오간다.
 
 화면의 모든 수치는 시연용 합성 수치다. 실제 카드 분석 결과는 `private/`에만 둔다.

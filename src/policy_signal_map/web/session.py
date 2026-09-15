@@ -11,7 +11,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from threading import Lock
 
-from .models import PlanInput
+from ..plan.models import PlanInput
 
 COOKIE_NAME = "psm_session"
 

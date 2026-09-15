@@ -2,11 +2,11 @@
 
 import json
 from functools import cache
-from pathlib import Path
 
+from ..paths import RESOURCES_DIR
 from .models import Region, RegionLevel
 
-DATA_FILE = Path(__file__).parent / "data" / "regions.json"
+DATA_FILE = RESOURCES_DIR / "regions.json"
 
 
 @cache

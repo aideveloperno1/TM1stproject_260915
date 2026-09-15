@@ -197,10 +197,10 @@
     <div class="card">
       <h2 class="side-title">검토 예정 규칙</h2>
       <div class="rule-list">
-        {% for rule_id, status, text in labels.RULES %}
-          <div class="rule rule-{{ status }}">
-            <div class="rule-id">{{ rule_id }} · {{ labels.RULE_STATUS_LABELS[status] }}</div>
-            <div class="rule-text">{{ text }}</div>
+        {% for rule in rules %}
+          <div class="rule rule-{{ rule.scope }}">
+            <div class="rule-id">{{ rule.id }} · {{ rule.scope_label }}</div>
+            <div class="rule-text">{{ rule.summary }}</div>
           </div>
         {% endfor %}
       </div>
@@ -212,5 +212,5 @@
 
 {% block scripts %}
 <script id="regions-data" type="application/json">{{ regions_json | tojson }}</script>
-<script src="{{ url_for('static', path='input.js') }}"></script>
+<script src="{{ url_for('static', path='js/input.js') }}"></script>
 {% endblock %}

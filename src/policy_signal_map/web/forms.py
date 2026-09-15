@@ -2,7 +2,7 @@
 
 from collections.abc import Mapping, Sequence
 
-from .models import (
+from ..plan.models import (
     Budget,
     BudgetStatus,
     DataStatus,
