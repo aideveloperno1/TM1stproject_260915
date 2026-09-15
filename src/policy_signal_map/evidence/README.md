@@ -18,8 +18,8 @@
 | `__init__.py` | 있음 | 비어 있음 |
 | `schema.py` | 있음 | 근거 파일 데이터 형태와 검증 (`parse_evidence`) |
 | `loader.py` | 있음 | 파일 읽기, 실제 자료 판단, 레코드 찾기 |
-| `compare.py` | 예정 (9/16~17) | 비교 A/B, 방향, opposite, 증감률 |
-| `summary.py` | 예정 (9/17) | 기간 합산 비중, 반대 방향 구간 수 등 화면·규칙용 요약 |
+| `compare.py` | 있음 | 비교 A/B, 방향, opposite, 증감률 (`compare_record`, `compare_months`) |
+| `summary.py` | 있음 | 기간 합산 비중, 구간 수 요약 (`period_totals`, `summarize_pairs`) |
 
 ## 파일별 상세
 
@@ -93,11 +93,11 @@ MonthValue
 MonthPair
   month_0, month_1
   status: "ok" | "skipped"
-  skip_reason: str | None            예: "2026-04 no_data", "월 누락"
+  skip_reason: str | None            예: "2026-02 자료 없음(no_data)", 두 달 모두면 쉼표로 함께
 
-  foreign_amount_diff: int | None           F1 - F0
-  foreign_amount_growth: Fraction | None    (F1-F0)/F0, F0 == 0 이면 None
-  total_amount_growth: Fraction | None      (T1-T0)/T0, T0 == 0 이면 None
+  foreign_amount_diff: int | None               F1 - F0
+  foreign_amount_growth_pct: Fraction | None    (F1-F0)/F0 × 100, F0 == 0 이면 None
+  total_amount_growth_pct: Fraction | None      (T1-T0)/T0 × 100
   share_change_pp: Fraction | None          (F1/T1 - F0/T0) × 100
   known_only_share_change_pp: Fraction | None   (F1/(T1-U1) - F0/(T0-U0)) × 100
 
