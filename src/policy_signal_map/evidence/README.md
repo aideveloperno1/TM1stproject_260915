@@ -15,9 +15,9 @@
 
 | 파일 | 상태 | 내용 |
 |---|---|---|
-| `__init__.py` | 예정 (9/16) | 비어 있음 |
-| `schema.py` | 예정 (9/16) | 근거 파일 데이터 형태와 검증 |
-| `loader.py` | 예정 (9/16) | 파일 읽기, 버전·종류 확인, 오류 메시지 |
+| `__init__.py` | 있음 | 비어 있음 |
+| `schema.py` | 있음 | 근거 파일 데이터 형태와 검증 (`parse_evidence`) |
+| `loader.py` | 있음 | 파일 읽기, 실제 자료 판단, 레코드 찾기 |
 | `compare.py` | 예정 (9/16~17) | 비교 A/B, 방향, opposite, 증감률 |
 | `summary.py` | 예정 (9/17) | 기간 합산 비중, 반대 방향 구간 수 등 화면·규칙용 요약 |
 
@@ -60,27 +60,30 @@ MonthValue
   warnings: list[str]
 ```
 
-검증 규칙 (위반 시 `EvidenceError`, 조용히 넘어가지 않음)
+- `parse_evidence(data) -> ParseResult(file, errors, warnings)`: 오류가 하나라도 있으면 `file`은 None
+- 허용 값은 파일 위쪽 상수(`SUPPORTED_SCHEMA_VERSIONS`, `CALCULATION_STATUSES` 등) 한곳에서 관리한다
+- 계산에 쓰는 값은 정수 F·T·U·C뿐이며, 파일의 `*_share_pct`는 대조·표시 참고용이다
 
-1. 목록에 없는 상태값 → 파일 검증 오류 (9-2장)
+검증 규칙 전체(파일 9·레코드 15·월 15개)와 선행 조건은 [1근거계산계층계획.md 7장](../../../1근거계산계층계획.md#7-1-3b-검증과-로더)을 따른다. 핵심:
+
+1. 목록에 없는 상태값·범위값 → 오류 (9-2장). 상태값이 틀린 월은 상태별 규칙을 적용하지 않는다
 2. `reason` 누락·빈 값 → 오류
-3. `ok` 월: F·T·U 모두 정수, `0 ≤ F`, `0 ≤ U`, `F ≤ T`, `U ≤ T`, `F + U ≤ T` (8-1장)
-4. `ok` 월: 파일의 `*_share_pct`와 F·T·U로 다시 계산한 값의 차이가 허용 오차(1e-6%p)를 넘으면 경고. 숫자를 고치지 않는다
-5. 금액이 소수·문자열·음수 → 오류
-6. months는 `period_start`~`period_end`의 모든 월을 순서대로 포함해야 한다. **누락 월을 생략하지 않고 상태·null로 둔다** (9-3장)
-7. `no_data` 월의 금액은 null이어야 한다. 0을 넣으면 오류 ("관측 0"과 "자료 없음" 구분, 8-1장)
-8. `amount_unit != "KRW"` → 오류
+3. `ok` 월: F·T·U·C는 0 이상 정수(참/거짓·소수 불가), T > 0, `F + U ≤ T` (8-1장). 형식이 틀린 월은 관계 검사를 하지 않는다
+4. `ok` 월: 미상 제외 분모(T−U)가 0이면 `known_only_share_pct`는 null
+5. `ok` 월: 파일 비중과 재계산 비중의 차이가 1e-6%p를 넘으면 **경고**. 숫자를 고치지 않는다
+6. months는 기간의 모든 월을 순서대로 한 번씩 포함. **누락 월을 생략하지 않고 상태·null로 둔다** (9-3장)
+7. `no_data` 월의 금액·비중은 null. 0이면 오류 ("관측 0"과 "자료 없음" 구분, 8-1장)
+8. 한 파일에 합성·실제 레코드 혼합, `evidence_id` 중복 → 오류
+9. 모르는 필드 → 경고 후 계속 읽기. `_`로 시작하는 최상위 필드는 무시
+
+오류 문구 형식: `[레코드 ID / 월 / 필드] 내용`. **금액·건수·비중 필드는 값을 출력하지 않고 형식(정수·소수·글자 등)만** 적는다. 실제 파일 오류가 화면·로그로 옮겨질 때 카드 수치가 새지 않게 하기 위해서다.
 
 ### `loader.py`
 
-- `load_evidence(path) -> EvidenceFile` : JSON 읽기 → `schema.py` 검증
-- `EvidenceError(messages: list[str])` : 사용자에게 보여줄 한국어 메시지 목록. 어느 레코드·월·필드인지 포함
-- 확인 사항
-  - `schema_version` 지원 여부 → 다르면 "데이터 담당에게 버전 확인" 메시지로 멈춤
-  - 한 파일 안에 `synthetic`과 `real`이 섞이면 오류 (8-2장: 합성과 실제를 섞지 않음)
-  - `find_record(file, geographic_scope, region_key)` : 요청한 범위가 없으면 None. **자동으로 전국 자료를 지역 자료처럼 대체하지 않는다** (9-3장)
-- 파일 경로는 `config.py`에서 받는다. 이 모듈이 경로를 정하지 않는다
-- 로드 결과는 앱 시작 시 한 번 읽어 캐시한다 (파일 교체 시 서버 재시작)
+- `load_evidence(path) -> LoadResult(file, warnings, source_path)`: 파일 읽기(UTF-8, BOM 허용, NaN·Infinity 거부) → `parse_evidence`. 실패 시 `EvidenceError(messages, path)`
+- `find_record(file, geographic_scope, region_key)`: 요청한 범위가 없으면 None. **전국 자료로 자동 대체하지 않는다** (9-3장). 입력 화면 행정코드와 `region_key`의 연결 규칙은 2-3 전에 정한다
+- `has_real_records(file)`, `is_real_evidence(path, file)`: 레코드가 `real`이거나 **경로에 `private` 폴더·이름에 `_real_`이 있으면** 실제 자료로 본다. `config.check_llm_data_combination`에 넘긴다
+- 파일 경로는 `config.py`에서 받는다. 이 모듈은 캐시하지 않으며, 앱 시작 시 한 번 읽어 보관하는 것은 web 계층(2-1)의 몫이다
 
 ### `compare.py`
 
