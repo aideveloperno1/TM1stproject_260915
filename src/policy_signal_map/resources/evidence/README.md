@@ -9,22 +9,22 @@
 
 | 파일 | 상태 | 내용 |
 |---|---|---|
-| `review_evidence_demo_v1.json` | 예정 (9/16) | 화면 시연용 합성 근거. `scripts/build_demo_evidence.py`로 생성 |
+| `review_evidence_demo_v1.json` | 있음 | 화면 시연용 합성 근거. `uv run python scripts/build_demo_evidence.py`로 생성, 손으로 고치지 않음 |
 
 ## `review_evidence_demo_v1.json` 내용
 
-- `schema_version`: `"2.0"`, `dataset_version`: `"demo-001"`
-- 레코드 `DEMO-R07-NATIONAL`
-  - `data_kind: "synthetic"`, `geographic_scope: "national"`, `region_key: "ALL"`, 기간 2026-01~2026-06
-  - 6개월 모두 `ok`
-  - 인접 5구간 중 비교 A 반대 방향과 같은 방향이 섞이게 구성 (반대 방향만으로 만들지 않음)
-  - 0.01%p 미만 변화 구간 1개 포함 (표시 규칙 확인용)
-  - applicability: R07 `allowed`(합성 전국 예시로만 사용) / R06 `blocked`(업종·월 보정 자료 없음) / R02 `needs_review`(지역 기준과 업종 후보 자료 미확인)
-  - limitations: "합성 자료", "전국 참고 예시이며 선택 지역 진단이 아님", "미상 제외 비중을 정답으로 해석하지 않음"
-- 레코드 `DEMO-R07-SIDO-HOLD`
-  - `geographic_scope: "sido"`, 가상 시도 키, `no_data` 월과 `invalid_denominator` 월 포함
-  - applicability R07 `needs_review`
+- `schema_version`: `"2.0"`, `dataset_version`: `"demo-001"`, 설정 기본값(`PSM_EVIDENCE_PATH` 미설정)이 이 파일
+- 레코드 `DEMO-R07-NATIONAL` — 전국, 2026-01~06, 6개월 모두 `ok`
+  - 인접 5구간: 비교 A **반대 2개**(01→02, 02→03), **같음 3개** — 반대 방향만 모은 자료가 아님
+  - 04→05는 비중 변화 +0.0022%p (0.01%p 미만 표시 규칙 확인용)
+  - 기간 합산 비중 8.3778% (월 비중 평균 8.3760%과 다름)
+  - applicability: R07 `allowed` / R06 `blocked` / R02 `needs_review`
+- 레코드 `DEMO-R07-SIDO-HOLD` — 가상 시도 `DEMO-SIDO-A`
+  - 03월 `no_data`, 05월 `invalid_denominator` → 비교 가능 1개, 보류 4개
+  - applicability: R07 `needs_review` / R06·R02 `blocked`
   - 2단계 "자료가 부족한 경우 보기" 화면용
+- 월별 수치 표: [1근거계산계층계획.md 9장](../../../../1근거계산계층계획.md#9-1-5-합성-근거-파일)
+- `tests/test_demo_evidence.py`가 생성 스크립트와의 일치, 구간 구성, 가상 규모를 검사한다
 
 ## 원칙
 

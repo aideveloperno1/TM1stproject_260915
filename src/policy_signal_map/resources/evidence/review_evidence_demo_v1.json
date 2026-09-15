@@ -1,0 +1,226 @@
+{
+  "schema_version": "2.0",
+  "dataset_version": "demo-001",
+  "records": [
+    {
+      "evidence_id": "DEMO-R07-NATIONAL",
+      "data_kind": "synthetic",
+      "scope": {
+        "geographic_scope": "national",
+        "region_key": "ALL",
+        "population": "foreign_code_3",
+        "industry_scope": "all_provided",
+        "age_scope": "all",
+        "period_start": "2026-01",
+        "period_end": "2026-06"
+      },
+      "region_basis": "unknown",
+      "applicability": {
+        "R07": {
+          "status": "allowed",
+          "reason": "합성 전국 금액·비중 및 분모 점검 예시로만 사용"
+        },
+        "R06": {
+          "status": "blocked",
+          "reason": "업종·월 보정 자료 없음"
+        },
+        "R02": {
+          "status": "needs_review",
+          "reason": "지역 기준과 업종 후보 자료 미확인"
+        }
+      },
+      "amount_unit": "KRW",
+      "months": [
+        {
+          "month": "2026-01",
+          "calculation_status": "ok",
+          "foreign_amount": 820,
+          "total_amount": 10000,
+          "unknown_amount": 450,
+          "transaction_count": 500,
+          "foreign_share_pct": 8.2,
+          "known_only_share_pct": 8.5863874346,
+          "unknown_share_pct": 4.5,
+          "warnings": []
+        },
+        {
+          "month": "2026-02",
+          "calculation_status": "ok",
+          "foreign_amount": 790,
+          "total_amount": 9400,
+          "unknown_amount": 520,
+          "transaction_count": 470,
+          "foreign_share_pct": 8.4042553191,
+          "known_only_share_pct": 8.8963963964,
+          "unknown_share_pct": 5.5319148936,
+          "warnings": []
+        },
+        {
+          "month": "2026-03",
+          "calculation_status": "ok",
+          "foreign_amount": 860,
+          "total_amount": 10300,
+          "unknown_amount": 560,
+          "transaction_count": 515,
+          "foreign_share_pct": 8.3495145631,
+          "known_only_share_pct": 8.8295687885,
+          "unknown_share_pct": 5.4368932039,
+          "warnings": []
+        },
+        {
+          "month": "2026-04",
+          "calculation_status": "ok",
+          "foreign_amount": 905,
+          "total_amount": 10600,
+          "unknown_amount": 540,
+          "transaction_count": 530,
+          "foreign_share_pct": 8.5377358491,
+          "known_only_share_pct": 8.9960238569,
+          "unknown_share_pct": 5.0943396226,
+          "warnings": []
+        },
+        {
+          "month": "2026-05",
+          "calculation_status": "ok",
+          "foreign_amount": 930,
+          "total_amount": 10890,
+          "unknown_amount": 900,
+          "transaction_count": 544,
+          "foreign_share_pct": 8.5399449036,
+          "known_only_share_pct": 9.3093093093,
+          "unknown_share_pct": 8.2644628099,
+          "warnings": []
+        },
+        {
+          "month": "2026-06",
+          "calculation_status": "ok",
+          "foreign_amount": 880,
+          "total_amount": 10700,
+          "unknown_amount": 760,
+          "transaction_count": 535,
+          "foreign_share_pct": 8.2242990654,
+          "known_only_share_pct": 8.8531187123,
+          "unknown_share_pct": 7.1028037383,
+          "warnings": []
+        }
+      ],
+      "limitations": [
+        "합성 자료",
+        "전국 참고 예시이며 선택 지역 진단이 아님",
+        "미상 제외 비중을 정답으로 해석하지 않음"
+      ]
+    },
+    {
+      "evidence_id": "DEMO-R07-SIDO-HOLD",
+      "data_kind": "synthetic",
+      "scope": {
+        "geographic_scope": "sido",
+        "region_key": "DEMO-SIDO-A",
+        "population": "foreign_code_3",
+        "industry_scope": "all_provided",
+        "age_scope": "all",
+        "period_start": "2026-01",
+        "period_end": "2026-06"
+      },
+      "region_basis": "unknown",
+      "applicability": {
+        "R07": {
+          "status": "needs_review",
+          "reason": "합성 보류 예시: 시도 자료의 누락 월이 많아 비교 결론 보류"
+        },
+        "R06": {
+          "status": "blocked",
+          "reason": "업종·월 보정 자료 없음"
+        },
+        "R02": {
+          "status": "blocked",
+          "reason": "지역 기준 미확인"
+        }
+      },
+      "amount_unit": "KRW",
+      "months": [
+        {
+          "month": "2026-01",
+          "calculation_status": "ok",
+          "foreign_amount": 120,
+          "total_amount": 1500,
+          "unknown_amount": 90,
+          "transaction_count": 75,
+          "foreign_share_pct": 8.0,
+          "known_only_share_pct": 8.5106382979,
+          "unknown_share_pct": 6.0,
+          "warnings": []
+        },
+        {
+          "month": "2026-02",
+          "calculation_status": "ok",
+          "foreign_amount": 135,
+          "total_amount": 1580,
+          "unknown_amount": 100,
+          "transaction_count": 79,
+          "foreign_share_pct": 8.5443037975,
+          "known_only_share_pct": 9.1216216216,
+          "unknown_share_pct": 6.3291139241,
+          "warnings": []
+        },
+        {
+          "month": "2026-03",
+          "calculation_status": "no_data",
+          "foreign_amount": null,
+          "total_amount": null,
+          "unknown_amount": null,
+          "transaction_count": null,
+          "foreign_share_pct": null,
+          "known_only_share_pct": null,
+          "unknown_share_pct": null,
+          "warnings": [
+            "해당 월 관측 행 없음"
+          ]
+        },
+        {
+          "month": "2026-04",
+          "calculation_status": "ok",
+          "foreign_amount": 128,
+          "total_amount": 1540,
+          "unknown_amount": 95,
+          "transaction_count": 77,
+          "foreign_share_pct": 8.3116883117,
+          "known_only_share_pct": 8.8581314879,
+          "unknown_share_pct": 6.1688311688,
+          "warnings": []
+        },
+        {
+          "month": "2026-05",
+          "calculation_status": "invalid_denominator",
+          "foreign_amount": 0,
+          "total_amount": 0,
+          "unknown_amount": 0,
+          "transaction_count": 0,
+          "foreign_share_pct": null,
+          "known_only_share_pct": null,
+          "unknown_share_pct": null,
+          "warnings": [
+            "전체 금액 0으로 비중 계산 불가"
+          ]
+        },
+        {
+          "month": "2026-06",
+          "calculation_status": "ok",
+          "foreign_amount": 131,
+          "total_amount": 1560,
+          "unknown_amount": 98,
+          "transaction_count": 78,
+          "foreign_share_pct": 8.3974358974,
+          "known_only_share_pct": 8.9603283174,
+          "unknown_share_pct": 6.2820512821,
+          "warnings": []
+        }
+      ],
+      "limitations": [
+        "합성 자료",
+        "가상 시도 예시이며 실제 지역이 아님",
+        "누락 월을 0으로 해석하지 않음"
+      ]
+    }
+  ]
+}

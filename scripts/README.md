@@ -11,7 +11,7 @@
 | `build_regions.py` | 있음 | 지역 원본 CSV가 바뀔 때 |
 | `_evidence_builder.py` | 있음 | (직접 실행 안 함) 근거 JSON 조립 도우미 |
 | `build_fixtures.py` | 있음 | 테스트 경계 사례를 바꿀 때 |
-| `build_demo_evidence.py` | 예정 (9/16~17) | 합성 근거 파일 형식·시나리오를 바꿀 때 |
+| `build_demo_evidence.py` | 있음 | 합성 근거 파일 형식·시나리오를 바꿀 때 |
 | `check_public_bundle.py` | 예정 (9/16~17) | 매 푸시·배포 전 |
 
 ## 파일별 상세
@@ -31,7 +31,7 @@
 
 `tests/fixtures/evidence/`의 경계 사례 22개를 만든다. 정상 11개는 월 수치로, 오류 11개는 정상 사례에서 한 곳만 바꿔 만든다. `build_all()`은 테스트가 커밋된 파일과 비교할 때도 쓴다. 생성 목록에 없는 JSON이 폴더에 남아 있으면 종료 코드 1.
 
-### `build_demo_evidence.py` (예정)
+### `build_demo_evidence.py` (있음)
 
 화면 시연용 합성 근거 파일을 만든다. 손으로 JSON을 쓰면 비중(%)과 금액이 서로 안 맞기 쉬워서, 정수 금액만 정하고 비중은 계산해서 넣는다.
 
