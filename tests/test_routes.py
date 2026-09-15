@@ -35,18 +35,22 @@ def test_empty_submit_shows_errors():
 
 
 def test_valid_submit_keeps_original_and_opens_step_two():
-    response = client().post("/step/1", data=VALID_FORM)
+    c = client()
+    response = c.post("/step/1", data=VALID_FORM)
     assert response.status_code == 200
     assert str(response.url).endswith("/step/2")
-    assert "강원특별자치도 강릉시" in response.text
-    assert "사업 성과로 직접 평가" in response.text
+    assert "선택한 강원특별자치도 강릉시의 소비를 진단한 결과가 아닙니다" in response.text
+
+    placeholder = c.get("/step/3")
+    assert "강원특별자치도 강릉시" in placeholder.text
+    assert "사업 성과로 직접 평가" in placeholder.text
 
 
 def test_resubmitting_changed_plan_flags_recheck():
     c = client()
     c.post("/step/1", data=VALID_FORM)
-    response = c.post("/step/1", data={**VALID_FORM, "indicator_use": "reference"})
-    assert "재확인이 필요합니다" in response.text
+    c.post("/step/1", data={**VALID_FORM, "indicator_use": "reference"})
+    assert "재확인이 필요합니다" in c.get("/step/3").text
 
 
 def test_sample_button_fills_form():

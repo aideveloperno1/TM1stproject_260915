@@ -8,9 +8,9 @@
 
 | 파일 | 상태 | 쓰는 화면 | 내용 |
 |---|---|---|---|
-| `evidence_badges.html` | 예정 (9/16~17) | evidence, questions, draft | 범위(전국 참고/시도/넓은 범위 참고), 기간, 자료 버전, 합성·실제 칩 |
-| `month_table.html` | 예정 (9/16~17) | evidence | 월·금액(억원)·비중·미상 비중·미상 제외 비중·상태 표. 보류 월은 회색 행과 사유 |
-| `pair_chips.html` | 예정 (9/17) | evidence | 인접 구간 방향 칩 (같음/다름/보류, 0.01%p 미만 표기) |
+| `evidence_badges.html` | 있음 | evidence (이후 questions, draft) | 매크로 `evidence_badges(record_view, dataset_version, data_kind, is_main)`: 범위(전국 참고 — 특정 지역의 진단이 아님 / 예시), 기간, 자료 버전, 합성·실제 |
+| `month_table.html` | 있음 | evidence | 매크로 `month_table(record_view)`: 월·외국인 결제금액·전체 분모 비중·미상 비중·미상 제외 비중·상태(+경고). 보류 월 회색 행, 행마다 `data-row="month"` |
+| `pair_table.html` | 있음 | evidence | 매크로 `pair_table(record_view)`: 구간·증감률 2개·비중 변화·비교 A·미상 제외 변화·비교 B. 보류 구간은 한 칸에 사유. 시안의 구간 칩 대신 표 (2근거확인화면계획 결정 ③) |
 | `rule_card.html` | 예정 (9/17) | questions | 규칙 ID·제목·메시지·"왜 묻나요?"·근거 칩. kind별 스타일 (질문/안내/추가 확정 필요/보류) |
 | `option_card.html` | 예정 (9/17) | choices | 대안 제목·바뀌는 곳·필요 자료·운영 부담·선택 표시 |
 | `pending_badge.html` | 예정 (9/17) | input, choices, draft | "추가 확정 필요" 노란 칩 매크로 |

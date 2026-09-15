@@ -630,3 +630,234 @@ textarea.input {
   margin: 0;
   color: var(--text-2);
 }
+
+/* ---------- 근거 화면 (2단계) ---------- */
+.stack {
+  display: grid;
+  /* minmax(0, 1fr): 격자 칸이 표의 최소 폭(640px)만큼 늘어나 본문 전체가 가로 스크롤되는 것을 막는다 */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.stack > *,
+.chart-grid > *,
+.info-grid > * {
+  min-width: 0;
+}
+
+.section-title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.scope-badge {
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: var(--tag);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #5c6b7f;
+}
+
+.notice {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f3f5f8;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.notice-held {
+  background: #f7f8fa;
+  border: 1px dashed var(--line-2);
+}
+
+.summary-sentence {
+  margin: 18px 0 0;
+  max-width: 860px;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: -0.02em;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.chart-grid .chart-fallback {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chart-box {
+  position: relative;
+  height: 220px;
+  margin-top: 12px;
+}
+
+.segmented-buttons {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #edf1f7;
+}
+
+.segmented-buttons button {
+  border: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.segmented-buttons button[aria-pressed="true"] {
+  background: var(--card);
+  color: var(--primary);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.data-table caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.data-table th,
+.data-table td {
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table thead th {
+  border-top: 0;
+  background: #f3f6fa;
+  font-size: 12.5px;
+  color: var(--label);
+  white-space: nowrap;
+}
+
+.data-table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table .num,
+.num-inline {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.row-held th,
+.row-held td {
+  color: #96a2b3;
+  background: #fafbfc;
+}
+
+.cmp-opposite {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cell-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.kv-wide {
+  grid-template-columns: max-content auto;
+  max-width: 420px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .info-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.plain-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.hold-examples summary {
+  cursor: pointer;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.hold-example {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.error-list {
+  margin: 18px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--text-2);
+}

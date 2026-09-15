@@ -12,7 +12,7 @@
 | 파일 | 상태 | 쓰는 화면 | 내용 |
 |---|---|---|---|
 | `input.js` | 있음 | 1 기획 입력 | 기타 입력칸 표시, 지역 범위별 시도·시군구 선택 표시와 시군구 목록 갱신, 예산 미정 시 금액 입력 비활성·금액 표시, 지표 용도 안내 문구, 첫 오류로 스크롤 |
-| `charts.js` | 예정 (9/16~17) | 2 근거 확인 | Chart.js 차트 2개 |
+| `charts.js` | 있음 | 2 근거 확인 | Chart.js 차트 2개, 분모 전환, 불러오기 실패 시 대체 문구 |
 | `choices.js` | 예정 (9/17) | 4 보완 선택 | 대안 선택에 따라 실행 조건 입력 박스 표시, 수정 입력칸 표시 |
 | `save.js` | 예정 (9/18) | 5 보완 기획안, 전체 문서 보기 | [결과 저장] 저장 위치 선택 |
 | `trace.js` | 예정 (9/18) | 5 보완 기획안 | 근거 칩 클릭 시 근거 추적 패널 열고 닫기 |
@@ -21,13 +21,15 @@
 
 ### `charts.js`
 
-- 입력: `<script id="chart-data" type="application/json">`
+- 입력: `<script id="chart-data" type="application/json">` (`web/evidence_view.chart_data`)
   ```
-  { "months": ["2026-01", ...],
-    "foreign_amount_eok": [.., null, ..],     서버가 억원으로 변환, 자료 없음은 null
-    "share_all_pct": [...], "share_known_pct": [...],
-    "status": ["ok", "no_data", ...] }
+  { "unit": "원" | "억원",
+    "labels": ["1월", ...],
+    "status": ["ok", "no_data", ...],
+    "foreign_amount": [820, null, ...],       원 단위면 정수, 억원이면 소수 둘째 자리, 계산할 수 없는 월은 null
+    "share_all_pct": [8.2, ...], "share_known_pct": [8.5864, ...] }
   ```
+- Chart.js 4.5.1은 jsDelivr CDN에서 `integrity`(sha384)와 함께 불러온다. `window.Chart`가 없으면 차트 카드를 숨기고 `.chart-fallback`을 보인다 (9/16 주소를 임시로 틀리게 바꿔 확인)
 - 금액 막대 차트, 비중 선 차트 (전체 분모 / 미상 제외 버튼으로 데이터셋 전환)
 - null은 막대·점을 그리지 않고 끊는다 (`spanGaps: false`). 0으로 그리지 않는다
 - 축 눈금 소수 둘째 자리, 툴팁에 상태 표시

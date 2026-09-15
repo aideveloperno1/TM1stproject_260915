@@ -10,13 +10,17 @@
 |---|---|---|---|
 | `__init__.py` | 있음 | — | — |
 | `input.py` | 있음 | `GET /`, `GET·POST /step/1`, `POST /reset` | `steps/input.html` |
-| `steps.py` | 있음 (임시) | `GET /step/{2~5}` | `steps/placeholder.html` |
-| `evidence.py` | 예정 (9/16~17) | `GET /step/2` | `steps/evidence.html` |
+| `steps.py` | 있음 (임시) | `GET /step/{3~5}` | `steps/placeholder.html` |
+| `evidence.py` | 있음 | `GET /step/2` (원안 없으면 `/step/1`, 근거 오류면 `error.html` 503) | `steps/evidence.html` |
 | `questions.py` | 예정 (9/17) | `GET /step/3` | `steps/questions.html` |
 | `choices.py` | 예정 (9/17) | `GET·POST /step/4`, `POST /step/4/cancel` | `steps/choices.html` |
 | `draft.py` | 예정 (9/18) | `GET /step/5`, `GET /step/5/document`, `GET /step/5/download`, `GET /step/5/request` | `steps/draft.html`, `steps/document.html`, `steps/request.html` |
 
-단계를 구현할 때마다 `steps.py`에서 해당 번호를 빼고, 5단계까지 끝나면 `steps.py`와 `placeholder.html`을 삭제한다. `app.py`에 새 라우터를 등록한다.
+단계를 구현할 때마다 `steps.py`의 `FIRST_PLACEHOLDER_STEP`을 올리고, 5단계까지 끝나면 `steps.py`와 `placeholder.html`을 삭제한다.
+
+**라우터 등록 순서 주의:** `app.py`에서 새 단계 라우터는 `steps.py`보다 **앞에** 등록한다. `/step/{step}` 규칙이 먼저 등록되면 `/step/2` 같은 전용 주소를 가로챈다 (2근거확인화면계획 A-1, `test_step_two_route_is_not_shadowed_by_placeholder`).
+
+모든 화면은 `templating.render()`로 그린다 (문맥에 `evidence`가 빠지면 템플릿 오류).
 
 ## 파일별 상세
 

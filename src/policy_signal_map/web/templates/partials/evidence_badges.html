@@ -1,0 +1,11 @@
+{# 근거 범위 칩. 전국 근거에는 항상 "특정 지역의 진단이 아님"을 붙인다 (워크플로우 8-4) #}
+{% macro evidence_badges(record_view, dataset_version, data_kind, is_main) %}
+<div class="badge-row">
+  <span class="scope-badge">
+    {%- if is_main -%}전국 참고 — 특정 지역의 진단이 아님{%- else -%}{{ record_view.scope_label }} (예시){%- endif -%}
+  </span>
+  <span class="scope-badge">{{ record_view.period_label }}</span>
+  <span class="scope-badge">자료 버전 {{ dataset_version }}</span>
+  <span class="scope-badge">{{ "합성 자료" if data_kind == "synthetic" else "실제 자료" }}</span>
+</div>
+{% endmacro %}
