@@ -12,7 +12,7 @@
 | `_evidence_builder.py` | 있음 | (직접 실행 안 함) 근거 JSON 조립 도우미 |
 | `build_fixtures.py` | 있음 | 테스트 경계 사례를 바꿀 때 |
 | `build_demo_evidence.py` | 있음 | 합성 근거 파일 형식·시나리오를 바꿀 때 |
-| `check_public_bundle.py` | 예정 (9/16~17) | 매 푸시·배포 전 |
+| `check_public_bundle.py` | 있음 | 매 푸시·배포 전 |
 
 ## 파일별 상세
 
@@ -44,7 +44,7 @@
 - 비중 계산은 `_evidence_builder.py`를 쓰고, 만든 파일을 `evidence/loader.py`로 다시 읽어 오류·경고가 없는지 확인한다
 - 테스트용 경계 사례는 이 스크립트가 아니라 `build_fixtures.py`가 만든다
 
-### `check_public_bundle.py` (예정)
+### `check_public_bundle.py` (있음)
 
 공개 저장소·공개 배포에 실제 자료가 섞이지 않았는지 검사한다. 파일 이름이 아니라 내용으로 검사해 이름을 바꿔 둔 실수도 잡는다.
 
@@ -55,6 +55,8 @@
   - `.env` 파일이 추적됨
   - `dataset_version`이 `demo-`·`fixture-`로 시작하지 않는 근거 파일
   - 경로에 `_real_`이 있는 파일
+  - 원자료 형식(`.csv`, `.xlsx`, `.xls`, `.parquet`) 파일 — 원본 카드 자료가 CSV라서 내용 검사 대상(JSON) 밖의 유출을 막는다
+- 허용 예외: `tests/fixtures/evidence/mixed_data_kind.json` (이름표만 real인 가짜 수치)
 - 결과: 문제 파일 목록을 출력하고 종료 코드 1
 - `tests/test_public_bundle.py`에서도 같은 함수를 호출해 `uv run pytest`로 함께 검사한다
 

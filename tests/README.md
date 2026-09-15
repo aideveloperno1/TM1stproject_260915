@@ -10,13 +10,16 @@
 | 파일 | 상태 | 대상 폴더 | 시점 |
 |---|---|---|---|
 | `helpers.py` | 있음 | 공통: `VALID_FORM`, `parse()` | — |
+| `evidence_helpers.py` | 있음 | 공통: 경계 사례 경로·목록, `base_data()` | — |
 | `test_plan_validation.py` | 있음 (9개) | `plan/` | — |
 | `test_routes.py` | 있음 (9개, 단계별 확장) | `web/routes/` | 계속 |
-| `test_evidence_loader.py` | 예정 | `evidence/schema.py`, `loader.py` | 9/16 |
-| `test_evidence_compare.py` | 예정 | `evidence/compare.py` | 9/16~17 |
-| `test_evidence_summary.py` | 예정 | `evidence/summary.py` | 9/17 |
-| `test_public_bundle.py` | 예정 | `scripts/check_public_bundle.py` | 9/16~17 |
-| `test_boundaries.py` | 예정 | 패키지 의존 방향 | 9/17 |
+| `test_config.py` | 있음 (10개) | `config.py` | — |
+| `test_evidence_loader.py` | 있음 (44개) | `evidence/schema.py`, `loader.py`, 경계 사례 생성 일치 | — |
+| `test_evidence_compare.py` | 있음 (24개) | `evidence/compare.py` | — |
+| `test_evidence_summary.py` | 있음 (6개) | `evidence/summary.py` | — |
+| `test_demo_evidence.py` | 있음 (6개) | 합성 근거 파일 | — |
+| `test_public_bundle.py` | 있음 (8개) | `scripts/check_public_bundle.py` | — |
+| `test_boundaries.py` | 있음 (3개) | 패키지 의존 방향 (직접 import) | — |
 | `test_review_rules.py` | 예정 | `review/` | 9/17 |
 | `test_formatters.py` | 예정 | `web/formatters.py` | 9/17 |
 | `test_plan_changes.py` | 예정 | `plan/changes.py` | 9/17~18 |
@@ -49,14 +52,15 @@
 
 ### `test_boundaries.py`
 
-`ast`로 각 패키지의 import 문을 읽어 검사한다.
-- `plan`, `evidence`, `review`, `choices`, `document` → `fastapi`, `policy_signal_map.web` import 금지
-- `evidence` → `review`, `choices`, `document`, `llm` import 금지
-- `llm` → `evidence` import 금지
+`ast`로 각 패키지의 import 문을 읽어 검사한다 (상대 import 포함).
+- `plan`, `evidence`, `review`, `choices`, `document` → `fastapi`, `starlette`, `policy_signal_map.web`·`app` 직접 import 금지
+- `evidence` → `review`, `choices`, `document`, `llm`, `plan` 직접 import 금지
+- `llm` → `evidence` 직접 import 금지
+- 한계: 거쳐서 불러오는 import(`llm → review → evidence`)는 막지 못한다. LLM 수치 차단의 실제 장치는 C 단계 요약 함수·출력 검사다
 
 ### `test_public_bundle.py`
 
-`scripts/check_public_bundle.py`의 검사 함수를 호출해 추적 파일에 실제 자료·`.env`·`private/` 파일이 없는지 확인한다. git이 없는 환경에서는 건너뛴다.
+`scripts/check_public_bundle.py`의 검사 함수를 호출해 추적 파일에 실제 자료·`.env`·`private/`·원자료(csv 등) 파일이 없는지 확인한다. 임시 git 저장소에 한글 이름 파일을 넣어 이스케이프 문제 없이 검사되는지도 확인한다. git이 없는 환경에서는 건너뛴다.
 
 ## 원칙
 
