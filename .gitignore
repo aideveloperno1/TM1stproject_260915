@@ -6,7 +6,8 @@ dist/
 *.egg-info/
 
 # 공개 저장소: 실제 분석 근거 파일과 비밀 설정은 절대 올리지 않는다
-private/
+private/*
+!private/README.md
 *_real_*.json
 .env
 .env.*

@@ -89,6 +89,7 @@
 | 9/15 | 개발 환경을 uv + Python 3.12로 전환하고 기획 입력 화면(S01)을 FastAPI + Jinja2로 다시 구현: 필수·선택 항목, 목표·지표 복수 선택, 전국/시도/시군구 선택(시도 17·시군구 269), 예산 미입력/미정/금액 구분, 서버 검증·오류 표시, 추가 확정 필요 요약, [검토 시작] 시 원안 보관, 원안 변경 후 재제출 시 재확인 표시, 예시 기획 채우기 | `uv run pytest` 15개 통과, 브라우저에서 예시 채우기→시도 변경 시 시군구 목록 갱신→검토 시작→2단계 원안 표시, 콘솔 오류 없음 |
 
 | 9/15 | 폴더 구조 전환: plan/·review/·web/(routes·templates·static)·resources/ 분리, 규칙 표시를 `review_rules.json`에서 읽도록 변경, 테스트를 검증·화면 흐름으로 분리, `../Analysis/` 폴더와 안내 README 생성 | `uv run pytest` 18개 통과, 지역 목록 재생성 결과 변경 없음, 실행 중 서버에서 입력 화면·규칙 목록·정적 파일 응답 확인 |
+| 9/16 | 서비스 완성 기준 폴더 전체 생성(evidence·choices·document·llm·web 하위·resources 하위·tests/fixtures·docs·private 등 26개), 폴더마다 README.md에 만들 파일·상세 사양·원칙·테스트·일정 작성. `private/`는 README만 추적되도록 `.gitignore` 조정 | 모든 폴더 README 존재 확인, `git add --dry-run`에서 private는 README만, `uv run pytest` 18개 통과 |
 
 ## 6. 남은 작업·막힌 결정
 

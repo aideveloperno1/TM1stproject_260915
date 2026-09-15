@@ -25,29 +25,26 @@ web → document → choices → review → evidence, plan
 llm → review 결과만 사용 (evidence 직접 사용 금지)
 ```
 
-```
-src/policy_signal_map/
-  app.py              FastAPI 생성, 라우터 등록
-  paths.py            패키지 내 경로
-  plan/               S01 기획 입력: models, validation, regions
-  evidence/           분석 근거 읽기·검증, 비교 A/B 계산        (구현 예정)
-  review/             검토 규칙: rules (규칙 목록 읽기)
-  choices/            S03 보완 선택                              (구현 예정)
-  document/           S04·S05 보완 기획안 Markdown               (구현 예정)
-  llm/                C 단계 LLM 연결                            (구현 예정)
-  web/
-    session.py        작업 상태 보관 (서버 메모리)
-    forms.py          폼 값 → 기획 입력
-    labels.py         화면 선택지 문구
-    templating.py     템플릿·리다이렉트 공통
-    routes/           input.py, steps.py(2~5단계 임시)
-    templates/        base.html, steps/*.html
-    static/           css/, js/
-  resources/          regions.json, rules/review_rules.json (규칙 원본)
-tests/                pytest (helpers.py 공통)
-scripts/              build_regions.py
-private/              실제 분석 근거 파일 (git 제외, 공개 배포 금지)
-```
+**모든 폴더에 `README.md`가 있다.** 폴더의 역할, 만들 파일(있음/예정), 파일별 상세, 지켜야 할 원칙, 테스트를 적어 두었다. 새 파일을 만들기 전에 해당 폴더 README를 먼저 보고, 구현하면 표의 상태를 갱신한다.
+
+| 폴더 | 역할 | 설명 |
+|---|---|---|
+| `src/policy_signal_map/` | 패키지 루트: app·paths·config | [README](src/policy_signal_map/README.md) |
+| `  plan/` | S01 기획 입력 | [README](src/policy_signal_map/plan/README.md) |
+| `  evidence/` | 분석 근거 읽기·검증, 비교 A/B 계산 | [README](src/policy_signal_map/evidence/README.md) |
+| `  review/` | S02 검토 규칙 실행 | [README](src/policy_signal_map/review/README.md) |
+| `  choices/` | S03 보완 선택·실행 조건·재확인 | [README](src/policy_signal_map/choices/README.md) |
+| `  document/` | S04·S05 보완 기획안 Markdown | [README](src/policy_signal_map/document/README.md) |
+| `  llm/` | C 단계 AI 참고 의견 | [README](src/policy_signal_map/llm/README.md) |
+| `  web/` | 세션·폼·표시 형식 | [README](src/policy_signal_map/web/README.md) |
+| `    routes/` | 단계별 라우트 | [README](src/policy_signal_map/web/routes/README.md) |
+| `    templates/` (`steps/`, `partials/`) | Jinja2 화면 | [README](src/policy_signal_map/web/templates/README.md) |
+| `    static/` (`css/`, `js/`) | 스타일·화면 반응·결과 저장 | [README](src/policy_signal_map/web/static/README.md) |
+| `  resources/` (`rules/`, `evidence/`, `documents/`) | 규칙 원본·합성 근거·문서 양식 | [README](src/policy_signal_map/resources/README.md) |
+| `tests/` (`fixtures/evidence/`) | pytest, 경계 사례 | [README](tests/README.md) |
+| `scripts/` | 지역 목록·합성 근거 생성, 공개 자료 검사 | [README](scripts/README.md) |
+| `docs/` (`screenshots/`) | 규칙 설명·대안 비교·사용법·제출 구성 | [README](docs/README.md) |
+| `private/` | 실제 분석 근거 (README 외 git 제외) | [README](private/README.md) |
 
 데이터 분석 담당의 작업은 `../Analysis/`에 둔다. 두 폴더 사이에서는 `review_evidence.json`만 오간다.
 
