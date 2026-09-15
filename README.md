@@ -16,6 +16,22 @@ uv run pytest                             # 테스트
 uv run python scripts/build_regions.py    # 지역 선택 목록 다시 만들기
 ```
 
+### 설정 (환경변수)
+
+설정하지 않으면 합성 근거 파일과 LLM 없음으로 실행된다. 바꿀 때는 `.env.example`을 `.env`로 복사해 값을 채우고 `--env-file`로 실행한다. `.env`는 git에 올라가지 않는다.
+
+```powershell
+uv run --env-file .env policy-signal-map
+```
+
+| 환경변수 | 기본값 | 의미 |
+|---|---|---|
+| `PSM_EVIDENCE_PATH` | 합성 파일 `resources/evidence/review_evidence_demo_v1.json` | 분석 근거 파일. 실제 파일은 `private/`에만 둔다 |
+| `PSM_LLM_PROVIDER` | `none` | `none` / `cloud` / `local` (C 단계) |
+| `PSM_LLM_BASE_URL`, `PSM_LLM_MODEL`, `PSM_LLM_API_KEY` | 없음 | LLM 연결 정보 (C 단계) |
+
+실제 근거 파일과 `cloud`를 함께 설정하면 시작 시 오류로 멈춘다.
+
 ## 구조
 
 순수 로직(plan·evidence·review·choices·document)과 웹 계층(web)을 나눈다. 의존 방향은 한쪽으로만 간다.
