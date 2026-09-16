@@ -14,6 +14,8 @@ from .outcome import ReviewOutcome
 from .rules import RuleInfo
 
 CARD_METRICS = (Metric.FOREIGN_SHARE, Metric.FOREIGN_AMOUNT)
+# 참고 현황으로 쓰는 기획에는 "해석 조건 명시"만 고를 수 있게 한다 (4보완선택계획 결정 ④)
+NOTICE_OPTION_IDS = ("B",)
 
 # 목표와 지표가 서로 다른 것을 가리키는 조합 (금액 확대 목표 + 비중 지표 등)
 MISMATCH = {
@@ -102,7 +104,11 @@ def run(
         evidence_ids=(record.evidence_id,),
         scope_label=scope_label,
         region_note=region_note,
-        options=rule.options if kind == "question" else (),
+        options=(
+            rule.options
+            if kind == "question"
+            else tuple(o for o in rule.options if o.id in NOTICE_OPTION_IDS)
+        ),
         related_fields=rule.related_fields,
         observations={
             "comparable_count": summary.comparable_count,

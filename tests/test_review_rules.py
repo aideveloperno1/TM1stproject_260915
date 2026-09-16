@@ -93,7 +93,35 @@ def test_reference_indicator_use_is_notice_without_error_wording():
     r07 = outcome(run_review(plan(indicator_use=IndicatorUse.REFERENCE), DEMO), "R07")
     assert r07.kind == "notice"
     assert "그대로 두어도 됩니다" in r07.message
-    assert r07.options == ()
+    # 참고 현황으로 써도 "해석 조건 명시"는 고를 수 있어야 한다 (선택은 필수 아님)
+    assert [o.id for o in r07.options] == ["B"]
+
+
+def test_basic_check_questions_have_options():
+    result = run_review(plan(target="방한 관광객", goals=[Goal.STORE_USAGE], usage_place="", period_start="2026-10-01", period_end="2026-10-20"), DEMO)
+    for rule_id in ("R01", "R03", "R04"):
+        item = outcome(result, rule_id)
+        assert item.kind == "question"
+        assert [o.id for o in item.options] == ["A", "B"], rule_id
+        assert all(o.where and o.need and o.load for o in item.options), rule_id
+
+
+def test_shared_execution_fields_span_participation_group():
+    result = run_review(plan(target="방한 관광객", period_start="2026-10-01", period_end="2026-10-20"), DEMO)
+    with_execution = {
+        item.rule_id
+        for item in result.outcomes
+        for option in item.options
+        if option.execution_fields
+    }
+    assert with_execution == {"R07", "R03", "R04"}
+
+
+def test_held_and_pending_have_no_options():
+    held = outcome(run_review(plan(), load_evidence(fixture_path("missing_month"))), "R07")
+    assert held.kind == "held" and held.options == ()
+    pending = outcome(run_review(plan(), DEMO), "R05")
+    assert pending.kind == "pending" and pending.options == ()
 
 
 def test_unknown_indicator_use_offers_choices_without_conclusion():

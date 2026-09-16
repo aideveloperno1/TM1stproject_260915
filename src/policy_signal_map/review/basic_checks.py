@@ -26,6 +26,7 @@ def _outcome(rule: RuleInfo, kind: str, message: str) -> ReviewOutcome:
         kind=kind,  # type: ignore[arg-type]
         title=rule.title,
         message=message,
+        options=rule.options if kind == "question" else (),
         related_fields=rule.related_fields,
     )
 
