@@ -41,7 +41,7 @@ def test_valid_submit_keeps_original_and_opens_step_two():
     assert str(response.url).endswith("/step/2")
     assert "선택한 강원특별자치도 강릉시의 소비를 진단한 결과가 아닙니다" in response.text
 
-    placeholder = c.get("/step/4")
+    placeholder = c.get("/step/5")
     assert "강원특별자치도 강릉시" in placeholder.text
     assert "사업 성과로 직접 평가" in placeholder.text
 
@@ -51,7 +51,6 @@ def test_resubmitting_changed_plan_shows_recheck_notice():
     c.post("/step/1", data=VALID_FORM)
     c.post("/step/1", data={**VALID_FORM, "indicator_use": "reference"})
     assert "원안이 바뀌어 검토를 다시 실행했습니다" in c.get("/step/3").text
-    assert "재확인이 필요합니다" in c.get("/step/4").text
 
 
 def test_recheck_notice_disappears_after_unchanged_resubmit():
@@ -60,7 +59,6 @@ def test_recheck_notice_disappears_after_unchanged_resubmit():
     c.post("/step/1", data={**VALID_FORM, "indicator_use": "reference"})
     c.post("/step/1", data={**VALID_FORM, "indicator_use": "reference"})  # 바뀐 것 없이 다시 제출
     assert "원안이 바뀌어 검토를 다시 실행했습니다" not in c.get("/step/3").text
-    assert "재확인이 필요합니다" not in c.get("/step/4").text
 
 
 def test_sample_button_fills_form():

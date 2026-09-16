@@ -37,11 +37,8 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 
 ### `session.py` (있음 → 확장)
 
-- 현재 `WorkState`: `plan`, `original`, `review_restarted`
-- 추가 예정 필드
-  - `review_result: ReviewResult | None` — 원안 보관 시 계산해 둠
-  - `choices: ChoiceSet`
-  - `changed_fields: set[str]` — `plan/changes.py` 결과, `review_restarted` 대체
+- `WorkState`: `plan`, `original`, `changed_fields`(`plan/changes.py` 결과), `choices`(`ChoiceSet`), `review_restarted`(= 바뀐 항목이 있는지)
+- 검토 결과는 저장하지 않고 요청마다 다시 계산한다 (같은 입력이면 같은 결과)
 - `SessionStore`: 메모리 dict + 락. 서버 재시작 시 초기화
 - 공개 배포 호스팅 결정(checks.md 미정)에 따라 이 파일만 교체할 수 있게 `get_or_create`·`reset` 인터페이스를 유지한다
 - 오래된 세션 정리: 마지막 접근 후 2시간 지난 상태 삭제 (공개 배포 메모리 보호)

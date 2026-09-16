@@ -28,6 +28,14 @@ def _many[E](enum: type[E], values: Sequence[str]) -> list[E]:
     return list(dict.fromkeys(p for p in picked if p is not None))
 
 
+def parse_choice_form(form: Mapping[str, object]) -> tuple[dict[str, str], list[str]]:
+    """보완 선택 폼: 단일 값과 수집자료 목록. 검증은 choices/selection.py가 한다."""
+    single = {key: value for key, value in form.items() if isinstance(value, str)}
+    raw_items = single.pop("collect_items", "")
+    collect_items = [line.strip() for line in raw_items.replace(",", "\n").splitlines() if line.strip()]
+    return single, collect_items
+
+
 def parse_plan_form(single: Mapping[str, str], multi: Mapping[str, Sequence[str]]) -> PlanInput:
     def text(name: str) -> str:
         return single.get(name, "").strip()

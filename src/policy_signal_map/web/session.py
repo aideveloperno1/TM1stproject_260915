@@ -11,6 +11,8 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from threading import Lock
 
+from ..choices.models import ChoiceSet
+from ..plan.changes import diff_plan
 from ..plan.models import PlanInput
 
 COOKIE_NAME = "psm_session"
@@ -22,12 +24,17 @@ class WorkState:
     plan: PlanInput = field(default_factory=PlanInput)
     # [검토 시작] 시점에 보관한 원안. 보완 기획안의 "변경 전" 기준이 된다.
     original: PlanInput | None = None
-    # 이번 제출에서 원안이 바뀌었는지. 이후 단계의 선택을 재확인할 때 쓴다.
-    # 한 번 켜지면 계속 남지 않도록 제출할 때마다 다시 정한다 (4번에서 plan/changes.py의 항목별 재확인으로 대체 예정)
-    review_restarted: bool = False
+    # 이번 제출에서 바뀐 입력 항목 (plan/changes.py 이름). 관련된 선택만 재확인 대상이 된다.
+    changed_fields: frozenset[str] = frozenset()
+    # 담당자가 고른 보완 방법
+    choices: ChoiceSet = field(default_factory=ChoiceSet)
+
+    @property
+    def review_restarted(self) -> bool:
+        return bool(self.changed_fields)
 
     def start_review(self) -> None:
-        self.review_restarted = self.original is not None and self.original != self.plan
+        self.changed_fields = diff_plan(self.original, self.plan)
         self.original = deepcopy(self.plan)
 
 

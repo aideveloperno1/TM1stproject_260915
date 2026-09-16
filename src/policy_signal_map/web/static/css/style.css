@@ -937,6 +937,65 @@ textarea.input {
   color: var(--primary);
 }
 
+/* ---------- 보완 선택 (4단계) ---------- */
+.choice-card .chips {
+  margin-top: 16px;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.option-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.option-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.option-card-on {
+  border-color: var(--primary-line);
+  background: #f6f9ff;
+}
+
+.option-card-off {
+  opacity: 0.55;
+}
+
+.option-card-title {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.option-card-detail {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.execution-box {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px dashed var(--primary-line);
+  border-radius: 16px;
+  background: #fbfcff;
+}
+
+.execution-box .field:first-of-type {
+  margin-top: 8px;
+}
+
 .error-list {
   margin: 18px 0 0;
   padding-left: 18px;

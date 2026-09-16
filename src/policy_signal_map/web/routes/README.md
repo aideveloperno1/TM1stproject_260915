@@ -10,10 +10,10 @@
 |---|---|---|---|
 | `__init__.py` | 있음 | — | — |
 | `input.py` | 있음 | `GET /`, `GET·POST /step/1`, `POST /reset` | `steps/input.html` |
-| `steps.py` | 있음 (임시) | `GET /step/{4~5}` | `steps/placeholder.html` |
+| `steps.py` | 있음 (임시) | `GET /step/5` | `steps/placeholder.html` |
 | `evidence.py` | 있음 | `GET /step/2` (원안 없으면 `/step/1`, 근거 오류면 `error.html` 503) | `steps/evidence.html` |
 | `questions.py` | 있음 | `GET /step/3` (원안 없으면 `/step/1`, 근거 오류면 503) | `steps/questions.html` |
-| `choices.py` | 예정 (9/17) | `GET·POST /step/4`, `POST /step/4/cancel` | `steps/choices.html` |
+| `choices.py` | 있음 | `GET·POST /step/4`, `POST /step/4/cancel` (저장 후 303, 검증 실패는 422) | `steps/choices.html` |
 | `draft.py` | 예정 (9/18) | `GET /step/5`, `GET /step/5/document`, `GET /step/5/download`, `GET /step/5/request` | `steps/draft.html`, `steps/document.html`, `steps/request.html` |
 
 단계를 구현할 때마다 `steps.py`의 `FIRST_PLACEHOLDER_STEP`을 올리고, 5단계까지 끝나면 `steps.py`와 `placeholder.html`을 삭제한다.

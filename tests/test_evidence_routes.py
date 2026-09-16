@@ -114,5 +114,5 @@ def test_blocked_evidence_page_has_no_numbers(use_evidence, tmp_path: Path):
     assert "800원" not in html
 
 
-def test_step_four_placeholder_still_reachable():
-    assert "다음 작업에서 구현할 화면입니다" in reviewed_client().get("/step/4").text
+def test_step_five_placeholder_still_reachable():
+    assert "다음 작업에서 구현할 화면입니다" in reviewed_client().get("/step/5").text

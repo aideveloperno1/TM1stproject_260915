@@ -8,7 +8,7 @@
 | `placeholder.html` | 있음 (임시, 5단계 완성 후 삭제) | 4~5 임시 | `routes/steps.py` |
 | `evidence.html` | 있음 | 2 근거 확인 | `routes/evidence.py` |
 | `questions.html` | 있음 | 3 검토 질문 | `routes/questions.py` |
-| `choices.html` | 예정 (9/17) | 4 보완 선택 | `routes/choices.py` |
+| `choices.html` | 있음 | 4 보완 선택 | `routes/choices.py` |
 | `draft.html` | 예정 (9/18) | 5 보완 기획안 | `routes/draft.py` |
 | `document.html` | 예정 (9/18) | 5 전체 문서 보기 | `routes/draft.py` |
 | `request.html` | 예정 (9/18) | 5 정밀 분석 요청서 초안 | `routes/draft.py` |
