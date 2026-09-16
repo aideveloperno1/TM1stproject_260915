@@ -30,7 +30,7 @@
 - 현재: `load_rule_catalog()` → `RuleInfo(id, title, scope, summary)`
 - 확장: JSON에서 질문 문구, 대안 목록, 대안별 문서 반영 위치·필요 자료·운영 부담·추가 입력 필드를 읽는다
 - **문구·대안·문서 반영 위치는 JSON이 원본**, **조건 판단은 코드**(규칙 ID별 함수)가 맡는다
-- 시작 시 검사: JSON의 규칙 ID마다 코드 함수가 있는지, `scope`가 implement/basic인데 함수가 없으면 오류
+- 시작 시 검사: `engine.py`를 불러올 때 `check_rule_functions()`가 한 번 실행된다. `scope`가 implement/basic인데 실행 함수가 없으면 **앱이 시작하지 않는다** (화면을 여는 순간 500이 나지 않게). 요청 처리 중에는 다시 검사하지 않는다
 
 ### `outcome.py`
 

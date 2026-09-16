@@ -16,7 +16,10 @@ RUN_ORDER = ("R07", "R03", "R04", "R01", "R05")
 
 
 def check_rule_functions() -> None:
-    """실행해야 하는 규칙에 코드가 있는지 확인한다 (JSON과 코드가 어긋나지 않게)."""
+    """실행해야 하는 규칙에 코드가 있는지 확인한다 (JSON과 코드가 어긋나지 않게).
+
+    이 모듈을 불러올 때 한 번 실행한다. 화면을 여는 순간이 아니라 서버가 시작할 때 멈추게 하려는 것이다.
+    """
     missing = [
         rule.id
         for rule in load_rule_catalog()
@@ -61,7 +64,6 @@ def _run_rule(
 
 
 def run_review(plan: PlanInput, evidence: LoadResult | None) -> ReviewResult:
-    check_rule_functions()
     rules = rules_by_id()
 
     outcomes: list[ReviewOutcome] = []
@@ -86,3 +88,7 @@ def run_review(plan: PlanInput, evidence: LoadResult | None) -> ReviewResult:
         not_reviewed=not_reviewed,
         evidence_id=record.evidence_id if record else None,
     )
+
+
+# 규칙 파일과 코드가 어긋나면 화면을 여는 순간이 아니라 서버가 시작할 때 멈춘다
+check_rule_functions()

@@ -44,6 +44,36 @@ def test_rule_functions_exist_for_every_implemented_rule():
     assert ids == set(RUN_ORDER)
 
 
+def test_rule_without_code_is_caught_at_startup_not_on_request(monkeypatch):
+    """규칙만 추가하고 코드를 만들지 않으면 화면을 열 때가 아니라 시작할 때 멈춰야 한다."""
+    from dataclasses import replace
+
+    import policy_signal_map.review.engine as engine_module
+
+    extra = replace(rules_by_id()["R05"], id="R08", title="새 규칙")
+    monkeypatch.setattr(engine_module, "load_rule_catalog", lambda: (*load_rule_catalog(), extra))
+
+    with pytest.raises(ValueError, match="R08"):
+        engine_module.check_rule_functions()
+
+    # 요청 처리(run_review)는 이 검사를 다시 하지 않는다 (시작 때 이미 확인)
+    assert run_review(plan(), DEMO).outcomes
+
+
+def test_startup_check_runs_when_module_is_imported():
+    import ast
+    from pathlib import Path
+
+    source = Path(__file__).parent.parent / "src" / "policy_signal_map" / "review" / "engine.py"
+    module = ast.parse(source.read_text(encoding="utf-8"))
+    top_level_calls = [
+        node.value.func.id
+        for node in module.body
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name)
+    ]
+    assert "check_rule_functions" in top_level_calls
+
+
 def test_docs_and_json_share_rule_ids():
     text = (Path(__file__).parent.parent / "docs" / "review_rules.md").read_text(encoding="utf-8")
     for rule in load_rule_catalog():
