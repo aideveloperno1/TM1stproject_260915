@@ -8,7 +8,7 @@
 
 | 폴더 | 상태 | 내용 |
 |---|---|---|
-| `evidence/` | 예정 (9/16) | 근거 파일 경계 사례 |
+| `evidence/` | 있음 | 근거 파일 경계 사례 22개 (`scripts/build_fixtures.py`로 생성) |
 | `plans/` | 필요 시 | 기획 입력 사례 (지금은 `helpers.py`의 `VALID_FORM`으로 충분) |
 
 ## 원칙
