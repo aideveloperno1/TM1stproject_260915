@@ -36,4 +36,7 @@ def show(request: Request, session: Session, evidence: Evidence) -> Response:
 
     # 검토 결과는 저장하지 않고 요청마다 다시 계산한다 (같은 입력이면 같은 결과)
     result = run_review(state.original, evidence.result)
-    return render(request, "steps/questions.html", {"result": result, "kind_labels": KIND_LABELS}, **common)
+    # AI 의견은 화면을 그린 뒤 /step/3/opinions로 따로 받는다 (로컬 모델이 느려도 화면이 기다리지 않게)
+    ai_enabled = evidence.settings is not None and evidence.settings.llm_provider != "none"
+    context = {"result": result, "kind_labels": KIND_LABELS, "ai_enabled": ai_enabled}
+    return render(request, "steps/questions.html", context, **common)

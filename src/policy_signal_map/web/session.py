@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from threading import Lock
 
 from ..choices.models import ChoiceSet
+from ..llm.opinions import OpinionSet
 from ..plan.changes import diff_plan
 from ..plan.models import PlanInput
 
@@ -28,6 +29,9 @@ class WorkState:
     changed_fields: frozenset[str] = frozenset()
     # 담당자가 고른 보완 방법
     choices: ChoiceSet = field(default_factory=ChoiceSet)
+    # AI 참고 의견과 그것을 만든 원안. 원안이 바뀌면 다시 부른다 (PlanInput은 해시할 수 없어 값으로 비교한다)
+    opinions: OpinionSet | None = None
+    opinions_for: PlanInput | None = None
 
     @property
     def review_restarted(self) -> bool:
@@ -36,6 +40,18 @@ class WorkState:
     def start_review(self) -> None:
         self.changed_fields = diff_plan(self.original, self.plan)
         self.original = deepcopy(self.plan)
+        self.opinions = None
+        self.opinions_for = None
+
+    def cached_opinions(self) -> OpinionSet | None:
+        """이번 원안으로 만든 의견만 다시 쓴다."""
+        if self.opinions is not None and self.opinions_for == self.original:
+            return self.opinions
+        return None
+
+    def remember_opinions(self, opinions: OpinionSet) -> None:
+        self.opinions = opinions
+        self.opinions_for = deepcopy(self.original)
 
 
 class SessionStore:

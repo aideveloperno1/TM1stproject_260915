@@ -1180,3 +1180,24 @@ textarea.input {
     content: "";
   }
 }
+
+/* ---------- AI 참고 의견 ---------- */
+.ai-card {
+  border-style: dashed;
+  border-color: var(--line-2);
+  background: #fbfcfe;
+}
+
+.ai-opinion {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.ai-opinion .badge-row {
+  margin-top: 8px;
+}
