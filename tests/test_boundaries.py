@@ -10,7 +10,7 @@ from pathlib import Path
 PACKAGE = "policy_signal_map"
 PACKAGE_DIR = Path(__file__).resolve().parent.parent / "src" / PACKAGE
 
-LOGIC_PACKAGES = ("plan", "evidence", "review", "choices", "document")
+LOGIC_PACKAGES = ("plan", "evidence", "review", "choices", "document", "llm")
 RULES: list[tuple[tuple[str, ...], tuple[str, ...], str]] = [
     (
         LOGIC_PACKAGES,

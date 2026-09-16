@@ -21,6 +21,9 @@ class SettingsError(Exception):
     pass
 
 
+DEFAULT_LLM_TIMEOUT_S = 20.0
+
+
 @dataclass(frozen=True)
 class Settings:
     evidence_path: Path
@@ -29,12 +32,26 @@ class Settings:
     llm_model: str | None
     # 로그·오류 출력에 키가 찍히지 않게 repr에서 뺀다
     llm_api_key: str | None = field(repr=False)
+    # 로컬 모델은 응답이 느릴 수 있다. 화면을 오래 붙잡지 않도록 기다릴 시간을 정해 둔다
+    llm_timeout_s: float = DEFAULT_LLM_TIMEOUT_S
 
 
 def _value(environ: Mapping[str, str], name: str) -> str | None:
     # 빈 문자열은 설정하지 않은 것으로 본다 (.env.example을 그대로 복사한 경우)
     raw = environ.get(name, "").strip()
     return raw or None
+
+
+def _timeout(raw: str | None) -> float:
+    if raw is None:
+        return DEFAULT_LLM_TIMEOUT_S
+    try:
+        seconds = float(raw)
+    except ValueError:
+        raise SettingsError(f'PSM_LLM_TIMEOUT_S 값 "{raw}"는 숫자가 아닙니다.') from None
+    if seconds <= 0:
+        raise SettingsError("PSM_LLM_TIMEOUT_S는 0보다 커야 합니다.")
+    return seconds
 
 
 def load_settings(environ: Mapping[str, str] = os.environ) -> Settings:
@@ -50,6 +67,7 @@ def load_settings(environ: Mapping[str, str] = os.environ) -> Settings:
         llm_base_url=_value(environ, "PSM_LLM_BASE_URL"),
         llm_model=_value(environ, "PSM_LLM_MODEL"),
         llm_api_key=_value(environ, "PSM_LLM_API_KEY"),
+        llm_timeout_s=_timeout(_value(environ, "PSM_LLM_TIMEOUT_S")),
     )
 
     missing: list[str] = []
