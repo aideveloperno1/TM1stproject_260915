@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from .rules import OptionSpec, RuleInfo
+from .rules import OptionSpec, RuleInfo, get_rule
 
 OutcomeKind = Literal["question", "notice", "pending", "held", "not_reviewed"]
 
@@ -34,6 +34,8 @@ class ReviewOutcome:
     related_rule_ids: tuple[str, ...] = ()
     # 문장 조립에 쓴 수치. 화면 표시용이며 LLM에는 넘기지 않는다
     observations: dict[str, Any] = field(default_factory=dict)
+    # 이 결과를 만들 때 고른 문구 키. AI 참고 의견이 수치 없는 상황 설명을 찾는 데 쓴다
+    context_keys: tuple[str, ...] = ()
 
     @property
     def needs_choice(self) -> bool:
@@ -44,7 +46,9 @@ class ReviewOutcome:
         return next((o for o in self.options if o.id == option_id), None)
 
     def to_llm_summary(self) -> dict[str, Any]:
-        """C 단계용 요약. 금액·비중·구간 수 같은 수치를 넣지 않는다."""
+        """AI 참고 의견용 요약. 금액·비중·구간 수 같은 수치를 넣지 않는다."""
+        rule = get_rule(self.rule_id)
+        lines = [rule.context(key) for key in self.context_keys]
         return {
             "rule_id": self.rule_id,
             "kind": self.kind,
@@ -52,6 +56,7 @@ class ReviewOutcome:
             "has_evidence": bool(self.evidence_ids),
             "scope_label": self.scope_label,
             "related_rule_ids": list(self.related_rule_ids),
+            "context": [line for line in lines if line],
         }
 
 

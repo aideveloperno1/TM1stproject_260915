@@ -39,10 +39,12 @@ def _held(rule: RuleInfo, key: str, scope_label: str | None, region_note: str | 
         scope_label=scope_label,
         region_note=region_note,
         related_fields=rule.related_fields,
+        context_keys=(key,),
     )
 
 
 def _mismatch_prefix(rule: RuleInfo, plan: PlanInput) -> str:
+    """목표와 지표가 다른 것을 가리키면 앞에 붙일 문장. 없으면 빈 문자열."""
     for (goal, metric), (goal_label, metric_label) in MISMATCH.items():
         if goal in plan.goals and metric in plan.metrics:
             return rule.message("goal_mismatch_prefix", goal_label=goal_label, metric_label=metric_label)
@@ -84,14 +86,19 @@ def run(
     )
 
     if plan.indicator_use is IndicatorUse.REFERENCE:
-        kind, message = "notice", rule.message("notice_reference")
+        kind, message_key = "notice", "notice_reference"
     elif plan.indicator_use is IndicatorUse.UNKNOWN:
-        kind, message = "question", rule.message("question_unknown")
+        kind, message_key = "question", "question_unknown"
     else:
-        kind, message = "question", rule.message("question_direct")
+        kind, message_key = "question", "question_direct"
 
+    message = rule.message(message_key)
+    context_keys = [message_key, why_key]
     if kind == "question":
-        message = _mismatch_prefix(rule, plan) + message
+        prefix = _mismatch_prefix(rule, plan)
+        message = prefix + message
+        if prefix:
+            context_keys.append("goal_mismatch_prefix")
 
     return ReviewOutcome(
         rule_id=rule.id,
@@ -117,4 +124,5 @@ def run(
             "period": period,
             "dataset_version": file.dataset_version if file else None,
         },
+        context_keys=tuple(context_keys),
     )

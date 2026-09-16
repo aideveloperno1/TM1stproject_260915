@@ -18,23 +18,24 @@ TOURIST_WORDS = ("관광객", "방문객", "여행객")
 CARD_METRICS = (Metric.FOREIGN_SHARE, Metric.FOREIGN_AMOUNT)
 
 
-def _outcome(rule: RuleInfo, kind: str, message: str) -> ReviewOutcome:
+def _outcome(rule: RuleInfo, kind: str, key: str, **values: object) -> ReviewOutcome:
     return ReviewOutcome(
         rule_id=rule.id,
         question_key=rule.id,
         merge_group=rule.merge_group,
         kind=kind,  # type: ignore[arg-type]
         title=rule.title,
-        message=message,
+        message=rule.message(key, **values),
         options=rule.options if kind == "question" else (),
         related_fields=rule.related_fields,
+        context_keys=(key,),
     )
 
 
 def run_r01(rule: RuleInfo, plan: PlanInput) -> ReviewOutcome | None:
     """목표에 참여 상점 이용 확대가 있는데 사용처가 비어 있으면 묻는다."""
     if Goal.STORE_USAGE in plan.goals and not plan.usage_place:
-        return _outcome(rule, "question", rule.message("question"))
+        return _outcome(rule, "question", "question")
     return None
 
 
@@ -42,7 +43,7 @@ def run_r03(rule: RuleInfo, plan: PlanInput) -> ReviewOutcome | None:
     """대상이 관광객인데 성과지표가 외국인 전체 카드 지표이면 묻는다 (최종기획서 5-2)."""
     target = plan.target
     if any(word in target for word in TOURIST_WORDS) and any(m in CARD_METRICS for m in plan.metrics):
-        return _outcome(rule, "question", rule.message("question"))
+        return _outcome(rule, "question", "question")
     return None
 
 
@@ -61,7 +62,7 @@ def run_r04(rule: RuleInfo, plan: PlanInput) -> ReviewOutcome | None:
         return None
     if plan.indicator_use is not IndicatorUse.DIRECT or not any(m in CARD_METRICS for m in plan.metrics):
         return None
-    return _outcome(rule, "question", rule.message("question"))
+    return _outcome(rule, "question", "question")
 
 
 def run_r05(rule: RuleInfo, plan: PlanInput) -> ReviewOutcome | None:
@@ -69,7 +70,7 @@ def run_r05(rule: RuleInfo, plan: PlanInput) -> ReviewOutcome | None:
     pending = validate_plan(plan).pending
     if not pending:
         return None
-    return _outcome(rule, "pending", rule.message("pending", pending_list=", ".join(pending)))
+    return _outcome(rule, "pending", "pending", pending_list=", ".join(pending))
 
 
 RUNNERS = {"R01": run_r01, "R03": run_r03, "R04": run_r04, "R05": run_r05}

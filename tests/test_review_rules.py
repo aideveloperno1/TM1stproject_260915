@@ -1,6 +1,7 @@
 """검토 규칙 실행 (3검토질문계획.md 4장, docs/review_rules.md)."""
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -271,11 +272,48 @@ def test_question_keys_are_unique_so_choices_do_not_mix():
 
 
 def test_all_json_messages_avoid_judgment_words():
-    """실행되지 않은 문구도 검사한다 (보류·검토하지 않음 등)."""
+    """실행되지 않은 문구도 검사한다 (보류·검토하지 않음 등). 상황 설명도 같은 기준이다."""
     for rule in load_rule_catalog():
-        for key, text in rule.messages.items():
+        for key, text in {**rule.messages, **rule.llm_context}.items():
             for word in FORBIDDEN_WORDS:
                 assert word not in text, (rule.id, key, word)
+
+
+def test_llm_context_has_no_numbers():
+    """AI에 넘기는 상황 설명에 수치가 들어가면 안 된다 (6LLM참고의견계획.md 3장)."""
+    for rule in load_rule_catalog():
+        for key, text in rule.llm_context.items():
+            assert not re.search(r"\d|[%원]", text), (rule.id, key)
+            assert "{" not in text, (rule.id, key)  # 값을 채워 넣는 자리도 두지 않는다
+
+
+def test_every_context_key_used_in_review_has_a_sentence():
+    """실행 중 나온 키가 상황 설명을 못 찾으면 AI가 맥락 없이 답하게 된다."""
+    cases = [
+        {},
+        {"indicator_use": IndicatorUse.REFERENCE},
+        {"indicator_use": IndicatorUse.UNKNOWN},
+        {"goals": [Goal.FOREIGN_AMOUNT]},
+        {"target": "방한 관광객"},
+        {"goals": [Goal.STORE_USAGE], "usage_place": ""},
+        {"period_start": "2026-10-01", "period_end": "2026-10-20"},
+    ]
+    seen: set[tuple[str, str]] = set()
+    for case in cases:
+        for item in run_review(plan(**case), DEMO).outcomes:
+            for key in item.context_keys:
+                assert rules_by_id()[item.rule_id].context(key), (item.rule_id, key)
+                seen.add((item.rule_id, key))
+    assert ("R07", "why_opposite") in seen and ("R07", "goal_mismatch_prefix") in seen
+
+
+def test_llm_summary_carries_context_lines():
+    result = run_review(plan(), DEMO)
+    summary = outcome(result, "R07").to_llm_summary()
+    assert summary["context"] == [
+        "카드 지표를 사업 성과의 직접 평가 기준으로 쓰려 한다",
+        "금액과 비중의 변화 방향이 서로 달랐던 인접 월 구간이 있었다 (수치는 화면에 있음)",
+    ]
 
 
 def test_notice_is_not_related_to_questions():

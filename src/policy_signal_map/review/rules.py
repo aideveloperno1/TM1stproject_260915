@@ -5,7 +5,7 @@
 """
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
 from typing import Literal
 
@@ -64,6 +64,8 @@ class RuleInfo:
     related_fields: tuple[str, ...]
     document_targets: tuple[str, ...]
     merge_group: str | None
+    # 상황을 수치 없이 한 줄로 적은 설명. AI 참고 의견에만 쓴다 (6LLM참고의견계획.md 3장)
+    llm_context: dict[str, str] = field(default_factory=dict)
 
     @property
     def scope_label(self) -> str:
@@ -79,6 +81,10 @@ class RuleInfo:
 
     def option(self, option_id: str) -> OptionSpec | None:
         return next((o for o in self.options if o.id == option_id), None)
+
+    def context(self, key: str) -> str | None:
+        """수치 없는 상황 설명. 없으면 None을 돌려주고 AI 의견에서 그 줄을 뺀다."""
+        return self.llm_context.get(key)
 
 
 @cache
@@ -143,6 +149,7 @@ def load_rule_catalog() -> tuple[RuleInfo, ...]:
                 related_fields=tuple(item.get("related_fields", ())),
                 document_targets=tuple(item.get("document_targets", ())),
                 merge_group=item.get("merge_group"),
+                llm_context=dict(item.get("llm_context", {})),
             )
         )
     return tuple(rules)
