@@ -35,3 +35,11 @@ DATA_STATUS_LABELS: dict[DataStatus, str] = {
 }
 
 STEP_LABELS = ["기획 입력", "근거 확인", "검토 질문", "보완 선택", "보완 기획안"]
+
+# 보완 기획안 별첨에 적는 결정 표기
+DECISION_LABELS_FOR_DOCUMENT = {
+    "keep_original": "원안 유지",
+    "adopt": "채택",
+    "modify": "대안을 고쳐서 적용",
+    "hold": "보류",
+}
