@@ -15,11 +15,12 @@ AI 없이 정해 둔 양식에 확인된 값만 채운다. 미정 값을 지어�
 
 | 파일 | 상태 | 내용 |
 |---|---|---|
-| `__init__.py` | 예정 (9/18) | 비어 있음 |
-| `models.py` | 예정 (9/18) | 문서 구조 데이터 형태 |
-| `builder.py` | 예정 (9/18) | 원안 + 선택 → 문서 구조, 변경 목록 |
-| `render.py` | 예정 (9/18) | 문서 구조 → Markdown (Jinja2 양식 사용) |
-| `filename.py` | 예정 (9/18) | 저장 파일 이름 만들기 |
+| `__init__.py` | 있음 | 비어 있음 |
+| `models.py` | 있음 | 문서 구조 데이터 형태 |
+| `describe.py` | 있음 | 원안 → 장·줄 문장 (화면·문서 공용) |
+| `builder.py` | 있음 | 원안 + 선택 → 문서 구조, 변경 목록 |
+| `render.py` | 있음 | 문서 구조 → Markdown (`resources/documents/` 양식 사용) |
+| `filename.py` | 있음 | 저장 파일 이름 만들기 (기획안·요청서) |
 
 ## 파일별 상세
 
@@ -102,7 +103,7 @@ EvidenceRef
 
 ## 테스트
 
-`tests/test_document.py` (예정)
+`tests/test_document_describe.py`, `test_document_builder.py`, `test_document_render.py`, `test_document_filename.py` (공용 준비는 `tests/document_helpers.py`)
 
 | 확인 | 워크플로우 12장 |
 |---|---|

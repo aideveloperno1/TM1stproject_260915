@@ -5,13 +5,14 @@
 | 파일 | 상태 | 단계 | 라우트 |
 |---|---|---|---|
 | `input.html` | 있음 | 1 기획 입력 | `routes/input.py` |
-| `placeholder.html` | 있음 (임시, 5단계 완성 후 삭제) | 4~5 임시 | `routes/steps.py` |
 | `evidence.html` | 있음 | 2 근거 확인 | `routes/evidence.py` |
 | `questions.html` | 있음 | 3 검토 질문 | `routes/questions.py` |
 | `choices.html` | 있음 | 4 보완 선택 | `routes/choices.py` |
-| `draft.html` | 예정 (9/18) | 5 보완 기획안 | `routes/draft.py` |
-| `document.html` | 예정 (9/18) | 5 전체 문서 보기 | `routes/draft.py` |
-| `request.html` | 예정 (9/18) | 5 정밀 분석 요청서 초안 | `routes/draft.py` |
+| `draft.html` | 있음 | 5 보완 기획안 | `routes/draft.py` |
+| `document.html` | 있음 | 5 전체 문서 보기 | `routes/draft.py` |
+| `request.html` | 있음 | 5 정밀 분석 요청서 초안 | `routes/draft.py` |
+
+임시 화면 `placeholder.html`은 5단계 구현과 함께 삭제했다.
 
 ## 화면별 구성
 
@@ -41,7 +42,9 @@
 
 ### `draft.html`
 
-시안 S5 기준. "원안 ↔ 보완안" 두 열 비교 (변경 줄은 파란 왼쪽 선 + [변경] 칩 + 근거 칩), 요약 "변경 N건 · 추가 확정 필요 N건 · 원안 유지 N개", 근거 추적 패널(범위·관측·연결 질문·담당자 선택·한계·자료 버전). 버튼: [결과 저장] [전체 문서 보기] [정밀 분석 요청서 초안](옵션 D일 때).
+시안 S5 기준. 요약 "변경 N건 · 추가 확정 필요 N건 · 원안 유지 N개 장", 장별 문장 목록(변경·추가 줄은 파란 배경 + [변경]/[추가] 칩 + 근거 칩), 추가 확정 필요 목록, 변경 전후 표, 근거 추적 패널. 버튼: [결과 저장] [전체 문서 보기] [정밀 분석 요청서 초안](옵션 D일 때).
+
+**시안과 다른 점:** 두 열 비교(원안 열 + 보완안 열) 대신 **보완안 한 줄 목록 + 변경 전후 표**로 만들었다. 두 열은 좁은 화면에서 어차피 위아래로 접히고, 같은 내용을 두 번 보여주게 된다. 원안 문장은 변경 전후 표의 "원안" 칸에서 확인한다.
 
 ### `document.html`
 

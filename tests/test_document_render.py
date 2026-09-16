@@ -93,7 +93,15 @@ def test_user_text_cannot_break_the_change_table():
     text = render_markdown(document)
     row = next(line for line in text.splitlines() if line.startswith("| 7 |"))
     assert len(re.findall(r"(?<!\\)\|", row)) == 7  # 칸 구분선은 6개 칸 기준 7개
-    assert r"분모 \| 기준 \[주의\]" in row
+    assert r"분모 \| 기준 [주의]" in row  # 대괄호는 [추가 확정 필요] 표기에 쓰므로 그대로 둔다
+
+
+def test_pending_mark_is_bold_only_in_the_document():
+    document, _ = document_for(plan_with(indicator_use=IndicatorUse.REFERENCE))
+    text = render_markdown(document)
+    assert "- 세부 일정: 원안에 기재 없음 **[추가 확정 필요]**" in text.splitlines()
+    # 문서 구조 자체에는 표시 기호가 없다 (화면은 이 값을 그대로 쓴다)
+    assert all("**" not in line.text for section in document.sections for line in section.lines)
 
 
 def test_md_escape_keeps_plain_text():

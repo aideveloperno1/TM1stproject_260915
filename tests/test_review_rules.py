@@ -21,7 +21,12 @@ from policy_signal_map.plan.models import (
     sample_plan,
 )
 from policy_signal_map.review.engine import RUN_ORDER, check_rule_functions, run_review
-from policy_signal_map.review.rules import FORBIDDEN_WORDS, load_rule_catalog, rules_by_id
+from policy_signal_map.review.rules import (
+    FORBIDDEN_WORDS,
+    load_rule_catalog,
+    merge_group_label,
+    rules_by_id,
+)
 
 DEMO = load_evidence(DEFAULT_EVIDENCE_PATH)
 
@@ -245,6 +250,14 @@ def test_related_questions_point_to_each_other_without_merging_cards():
     assert set(r07.related_rule_ids) == {"R03", "R04"}
     assert set(r03.related_rule_ids) == {"R07", "R04"}
     assert len([o for o in result.outcomes if o.kind == "question"]) == 3
+
+
+def test_every_merge_group_has_a_readable_name():
+    """묶음 이름은 보완 기획안에 그대로 실린다. 내부 키가 사용자에게 보이면 안 된다."""
+    assert merge_group_label("participation_data") == "참여 실적 자료"
+    for rule in load_rule_catalog():
+        if rule.merge_group:
+            assert merge_group_label(rule.merge_group) != rule.merge_group
 
 
 def test_question_keys_are_unique_so_choices_do_not_mix():

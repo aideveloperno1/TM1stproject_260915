@@ -94,9 +94,9 @@ def test_owner_and_cycle_may_be_empty_and_become_pending():
     assert apply_choice(choice_set, outcome_of(result, "R07"), form, ["쿠폰 사용 실적"]) == {}
 
     pending = pending_from_choices(choice_set, result)
-    assert "participation_data: 수집 담당자" in pending
-    assert "participation_data: 확인 주기" in pending
-    assert "participation_data: 자료 확보 협의 (협의 중)" in pending
+    assert "참여 실적 자료: 수집 담당자" in pending
+    assert "참여 실적 자료: 확인 주기" in pending
+    assert "참여 실적 자료: 자료 확보 협의 (협의 중)" in pending
 
 
 def test_keep_original_and_hold_clear_option_fields():

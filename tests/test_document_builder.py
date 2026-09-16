@@ -50,8 +50,9 @@ def test_empty_owner_and_cycle_become_pending_marks():
 
     document, _ = document_for(plan, choice_set)
     lines = texts(document, 7)
-    assert "수집 담당: **[추가 확정 필요]**" in lines
-    assert "확인 주기: **[추가 확정 필요]**" in lines
+    # 문서 구조에는 표시 기호를 넣지 않는다 (Markdown 굵게는 render.py가 붙인다)
+    assert "수집 담당: [추가 확정 필요]" in lines
+    assert "확인 주기: [추가 확정 필요]" in lines
     assert any("수집 담당자" in item for item in document.pending)
 
 

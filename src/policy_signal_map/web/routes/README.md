@@ -10,15 +10,12 @@
 |---|---|---|---|
 | `__init__.py` | 있음 | — | — |
 | `input.py` | 있음 | `GET /`, `GET·POST /step/1`, `POST /reset` | `steps/input.html` |
-| `steps.py` | 있음 (임시) | `GET /step/5` | `steps/placeholder.html` |
 | `evidence.py` | 있음 | `GET /step/2` (원안 없으면 `/step/1`, 근거 오류면 `error.html` 503) | `steps/evidence.html` |
 | `questions.py` | 있음 | `GET /step/3` (원안 없으면 `/step/1`, 근거 오류면 503) | `steps/questions.html` |
 | `choices.py` | 있음 | `GET·POST /step/4`, `POST /step/4/cancel` (저장 후 303, 검증 실패는 422) | `steps/choices.html` |
-| `draft.py` | 예정 (9/18) | `GET /step/5`, `GET /step/5/document`, `GET /step/5/download`, `GET /step/5/request` | `steps/draft.html`, `steps/document.html`, `steps/request.html` |
+| `draft.py` | 있음 | `GET /step/5`, `GET /step/5/document`, `GET /step/5/download`, `GET /step/5/request` | `steps/draft.html`, `steps/document.html`, `steps/request.html` |
 
-단계를 구현할 때마다 `steps.py`의 `FIRST_PLACEHOLDER_STEP`을 올리고, 5단계까지 끝나면 `steps.py`와 `placeholder.html`을 삭제한다.
-
-**라우터 등록 순서 주의:** `app.py`에서 새 단계 라우터는 `steps.py`보다 **앞에** 등록한다. `/step/{step}` 규칙이 먼저 등록되면 `/step/2` 같은 전용 주소를 가로챈다 (2근거확인화면계획 A-1, `test_step_two_route_is_not_shadowed_by_placeholder`).
+임시 화면(`steps.py`·`placeholder.html`)은 5단계 구현과 함께 삭제했다. 단계 주소는 모두 전용 라우터가 받으므로 `/step/{step}` 같은 포괄 규칙을 다시 만들지 않는다 (만들면 `/step/2` 등 전용 주소를 가로챈다).
 
 모든 화면은 `templating.render()`로 그린다 (문맥에 `evidence`가 빠지면 템플릿 오류).
 
@@ -66,8 +63,9 @@
 - `GET /step/5/document`: 전체 문서 보기 (Markdown을 HTML로 보기 좋게, 또는 `<pre>`)
 - `GET /step/5/download`: `document/render.py` 결과를 `text/markdown; charset=utf-8`로 응답, `Content-Disposition`에 `document/filename.py` 파일명 (RFC 5987 `filename*=UTF-8''` 인코딩으로 한글 파일명)
   - 화면의 [결과 저장]은 `static/js/save.js`가 이 주소를 받아 저장 위치 선택 창을 연다
-- `GET /step/5/request`: 옵션 D 선택 시 정밀 분석 요청서 초안. 선택 안 했으면 404 대신 안내
-- 문서 생성 차단 상태면 4단계로 리다이렉트
+- `GET /step/5/request`: 옵션 D 선택 시 정밀 분석 요청서 초안. 선택하지 않았으면 `/step/5`로 되돌린다
+- `GET /step/5/download?kind=request`: 요청서 초안 파일 (`정밀분석요청서_...md`)
+- 문서 생성 차단 상태면 4단계로 리다이렉트 (다운로드는 409와 사유 목록)
 
 ## 공통 원칙
 

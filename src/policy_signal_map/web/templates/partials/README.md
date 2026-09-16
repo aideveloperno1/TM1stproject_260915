@@ -14,7 +14,7 @@
 | `rule_card.html` | 있음 | questions | 매크로 `rule_card(outcome, kind_labels)`: 규칙 ID·제목·결과 종류·메시지·"왜 묻나요?"·범위/근거 칩·지역 안내·함께 확인. **대안은 4단계에서만 보여준다** |
 | `option_card.html` | 있음 | choices | 대안 제목·바뀌는 곳·필요 자료·운영 부담·선택 표시. 점수·추천 순위 없음 |
 | `pending_badge.html` | 있음 | choices (이후 input, draft) | "추가 확정 필요" 노란 칩 매크로 |
-| `evidence_trace.html` | 예정 (9/18) | draft | 변경 문장의 근거 추적 패널 |
+| `evidence_trace.html` | 있음 | draft | 근거별로 범위·기간·자료 버전, 그 근거로 바꾼 문장, 해석 한계 |
 
 ## 원칙
 

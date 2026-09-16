@@ -29,10 +29,9 @@ def test_step_two_requires_original():
     assert response.headers["location"] == "/step/1"
 
 
-def test_step_two_route_is_not_shadowed_by_placeholder():
+def test_step_two_route_shows_its_own_screen():
     response = reviewed_client().get("/step/2")
     assert "근거 확인" in response.text
-    assert "다음 작업에서 구현할 화면입니다" not in response.text
 
 
 def test_step_two_shows_demo_evidence():
@@ -114,5 +113,5 @@ def test_blocked_evidence_page_has_no_numbers(use_evidence, tmp_path: Path):
     assert "800원" not in html
 
 
-def test_step_five_placeholder_still_reachable():
-    assert "다음 작업에서 구현할 화면입니다" in reviewed_client().get("/step/5").text
+def test_unknown_step_is_not_served():
+    assert reviewed_client().get("/step/9", follow_redirects=False).status_code == 404

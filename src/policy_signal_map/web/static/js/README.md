@@ -14,8 +14,8 @@
 | `input.js` | 있음 | 1 기획 입력 | 기타 입력칸 표시, 지역 범위별 시도·시군구 선택 표시와 시군구 목록 갱신, 예산 미정 시 금액 입력 비활성·금액 표시, 지표 용도 안내 문구, 첫 오류로 스크롤 |
 | `charts.js` | 있음 | 2 근거 확인 | Chart.js 차트 2개, 분모 전환, 불러오기 실패 시 대체 문구 |
 | `choices.js` | 있음 | 4 보완 선택 | 결정·대안에 따라 실행 조건 상자와 수정 입력칸 표시 (검증은 서버) |
-| `save.js` | 예정 (9/18) | 5 보완 기획안, 전체 문서 보기 | [결과 저장] 저장 위치 선택 |
-| `trace.js` | 예정 (9/18) | 5 보완 기획안 | 근거 칩 클릭 시 근거 추적 패널 열고 닫기 |
+| `save.js` | 있음 | 5 보완 기획안, 전체 문서 보기, 요청서 초안 | [결과 저장] 저장 위치 선택 |
+| `trace.js` | 있음 | 5 보완 기획안 | 근거 칩을 누르면 해당 근거 추적 항목 강조 |
 
 ## 파일별 상세
 
@@ -45,16 +45,14 @@
 
 checks.md 결정: [결과 저장] → 저장 위치 선택 창 → 사용자가 고른 폴더에 Markdown 저장.
 
-1. 버튼의 `data-download-url`(`/step/5/download`)로 `fetch` → 본문 텍스트, 응답 헤더에서 파일명 추출
-2. `window.showSaveFilePicker`가 있으면
-   - `suggestedName`: 파일명, `types`: `[{ description: "Markdown", accept: { "text/markdown": [".md"] } }]`
-   - `createWritable()` → `write()` → `close()`
-   - 사용자가 창을 닫으면(`AbortError`) 아무 안내 없이 종료
-3. 없으면 (Firefox·Safari 등) `Blob` + `<a download>` 방식으로 다운로드 → "다운로드 폴더에 저장되었습니다" 안내
-4. 실패 시 "저장하지 못했습니다. [전체 문서 보기]에서 내용을 복사할 수 있습니다" 안내
+1. 버튼의 `data-url`(`/step/5/download`, 요청서는 `?kind=request`)과 `data-filename`을 읽는다
+2. `window.showSaveFilePicker`가 있으면 먼저 위치를 고르게 하고(취소하면 "저장을 취소했습니다") 그다음 본문을 `fetch`해 `createWritable()` → `write()` → `close()`
+3. 없으면 (Firefox·Safari 등) `<a download>`로 내려받고 "저장 위치 선택을 지원하지 않는 브라우저라 내려받기 폴더에 저장했습니다" 안내
+4. 실패하면 안내 후 내려받기로 대신한다. 안내 문구는 화면의 `[data-save-note]` 자리에 넣는다
 - 저장 위치 선택 창은 HTTPS 또는 localhost에서만 동작한다. 공개 배포는 HTTPS 필수
+- 서버에는 파일을 남기지 않는다 (최종기획서 4-5)
 
 ### `trace.js`
 
-- `data-trace-target` 칩 클릭 → 해당 근거 패널 `hidden` 토글, 포커스 이동
+- `data-trace-link` 칩을 누르면 `data-trace`가 같은 근거 항목에 `trace-on`을 준다 (앵커 이동은 HTML만으로 동작)
 - 패널 내용은 서버가 렌더링해 둔 것을 보여주기만 한다

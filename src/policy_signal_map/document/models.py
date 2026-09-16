@@ -18,8 +18,9 @@ SECTION_TITLES = {
     8: "추가 확인사항",
 }
 
-NOT_IN_PLAN = "원안에 기재 없음 **[추가 확정 필요]**"
-PENDING_MARK = "**[추가 확정 필요]**"
+# 표시 마크업(Markdown 굵게)은 넣지 않는다. 문서로 내보낼 때 render.py가 강조로 바꾼다
+PENDING_MARK = "[추가 확정 필요]"
+NOT_IN_PLAN = f"원안에 기재 없음 {PENDING_MARK}"
 
 
 @dataclass(frozen=True)

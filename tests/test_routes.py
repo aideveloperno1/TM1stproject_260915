@@ -41,9 +41,10 @@ def test_valid_submit_keeps_original_and_opens_step_two():
     assert str(response.url).endswith("/step/2")
     assert "선택한 강원특별자치도 강릉시의 소비를 진단한 결과가 아닙니다" in response.text
 
-    placeholder = c.get("/step/5")
-    assert "강원특별자치도 강릉시" in placeholder.text
-    assert "사업 성과로 직접 평가" in placeholder.text
+    # 보관한 원안은 다시 입력 화면을 열어도 그대로 남는다
+    again = c.get("/step/1").text
+    assert 'value="하반기 외국인 소비지원 쿠폰"' in again
+    assert "51150" in again
 
 
 def test_resubmitting_changed_plan_shows_recheck_notice():

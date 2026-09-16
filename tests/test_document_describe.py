@@ -29,7 +29,7 @@ def test_metric_other_uses_typed_text():
 
 def test_budget_text_by_status():
     assert budget_text(plan_with(budget=Budget(BudgetStatus.AMOUNT, krw=1_200_000, raw="1200000"))) == "1,200,000원"
-    assert budget_text(plan_with(budget=Budget(BudgetStatus.UNDECIDED))) == "미정 **[추가 확정 필요]**"
+    assert budget_text(plan_with(budget=Budget(BudgetStatus.UNDECIDED))) == "미정 [추가 확정 필요]"
 
 
 def test_period_text_keeps_day_level_dates():

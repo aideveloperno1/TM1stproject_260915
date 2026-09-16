@@ -1004,3 +1004,76 @@ textarea.input {
   font-size: 13.5px;
   color: var(--text-2);
 }
+
+/* ---------- 보완 기획안 ---------- */
+.doc-lines {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.doc-line {
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--field);
+  color: var(--text-2);
+  line-height: 1.55;
+}
+
+.doc-line-changed,
+.doc-line-added {
+  border-color: var(--primary-line);
+  background: var(--primary-soft);
+  color: var(--text);
+}
+
+.doc-line-pending {
+  border-style: dashed;
+  border-color: rgba(168, 118, 26, 0.4);
+  background: var(--warn-soft);
+}
+
+.doc-line .badge-row {
+  margin-top: 8px;
+}
+
+.doc-text {
+  overflow-wrap: anywhere;
+}
+
+.trace-list {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.trace-item {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--field);
+}
+
+.trace-item.trace-on {
+  border-color: var(--primary-line);
+  background: var(--primary-soft);
+}
+
+.doc-source {
+  margin: 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--field);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

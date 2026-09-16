@@ -27,10 +27,9 @@ def test_step_three_requires_original():
     assert response.headers["location"] == "/step/1"
 
 
-def test_step_three_route_is_not_shadowed_by_placeholder():
+def test_step_three_route_shows_its_own_screen():
     html = reviewed_client().get("/step/3").text
     assert "검토 질문" in html
-    assert "다음 작업에서 구현할 화면입니다" not in html
 
 
 def test_step_three_shows_question_with_evidence_and_scope():

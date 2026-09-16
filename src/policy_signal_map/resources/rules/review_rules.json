@@ -1,6 +1,9 @@
 {
   "version": "1.0",
   "description": "검토 규칙 원본. 사람이 읽는 설명은 docs/review_rules.md. 조건 판단은 review/의 규칙 ID별 함수가 맡는다.",
+  "merge_groups": {
+    "participation_data": "참여 실적 자료"
+  },
   "rules": [
     {
       "id": "R07",

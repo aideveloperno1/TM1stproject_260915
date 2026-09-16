@@ -20,11 +20,14 @@
 | `test_demo_evidence.py` | 있음 (6개) | 합성 근거 파일 | — |
 | `test_public_bundle.py` | 있음 (8개) | `scripts/check_public_bundle.py` | — |
 | `test_boundaries.py` | 있음 (3개) | 패키지 의존 방향 (직접 import) | — |
-| `test_review_rules.py` | 예정 | `review/` | 9/17 |
-| `test_formatters.py` | 예정 | `web/formatters.py` | 9/17 |
-| `test_plan_changes.py` | 예정 | `plan/changes.py` | 9/17~18 |
-| `test_choices.py` | 예정 | `choices/` | 9/17~18 |
-| `test_document.py` | 예정 | `document/` | 9/18 |
+| `test_review_rules.py` | 있음 (28개) | `review/` | — |
+| `test_formatters.py` | 있음 (31개) | `formatting.py` | — |
+| `test_plan_changes.py` | 있음 (9개) | `plan/changes.py` | — |
+| `test_choices.py` | 있음 (20개) | `choices/` | — |
+| `test_evidence_view.py`, `test_evidence_state.py`, `test_top_badge.py` | 있음 | `web/` 표시 | — |
+| `test_evidence_routes.py`, `test_question_routes.py`, `test_choice_routes.py`, `test_draft_routes.py` | 있음 | 2~5단계 화면 | — |
+| `document_helpers.py` | 있음 | 공통: 원안·선택·문서 생성 준비 | — |
+| `test_document_describe.py` (8), `test_document_builder.py` (19), `test_document_render.py` (10), `test_document_filename.py` (5) | 있음 | `document/` | — |
 | `test_llm_guard.py`, `test_llm_prompt.py` | C 단계 | `llm/` | 후속 |
 
 ## 워크플로우 12장 시험 항목 대응

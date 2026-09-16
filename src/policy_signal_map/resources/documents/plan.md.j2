@@ -12,7 +12,7 @@
 {% if section.lines %}
 {% for line in section.lines %}
 {% set mark = " 〔변경 · 근거 " ~ line.change_id ~ "〕" if line.state == "changed" else (" 〔추가 · 근거 " ~ line.change_id ~ "〕" if line.state == "added" else "") %}
-- {{ line.text }}{{ mark }}
+- {{ line.text | mark_pending }}{{ mark }}
 {% endfor %}
 {% else %}
 - 해당 사항 없음
@@ -27,7 +27,7 @@
 | 장 | 원안 | 보완안 | 규칙·대안 | 담당자 선택 | 근거 |
 |---|---|---|---|---|---|
 {% for change in doc.changes %}
-| {{ change.section }} | {{ (change.before or "(추가)") | md_escape }} | {{ change.after | md_escape }} | {{ change.rule_id }}{% if change.option_id %} · 대안 {{ change.option_id }}{% endif %} | {{ change.decision_label }} | {{ change.evidence_ids | join(", ") or "-" }} |
+| {{ change.section }} | {{ (change.before or "(추가)") | md_escape | mark_pending }} | {{ change.after | md_escape | mark_pending }} | {{ change.rule_id }}{% if change.option_id %} · 대안 {{ change.option_id }}{% endif %} | {{ change.decision_label }} | {{ change.evidence_ids | join(", ") or "-" }} |
 {% endfor %}
 {% else %}
 변경한 항목이 없습니다. 원안을 그대로 유지했습니다.

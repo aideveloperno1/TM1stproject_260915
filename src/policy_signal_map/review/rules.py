@@ -81,6 +81,14 @@ class RuleInfo:
         return next((o for o in self.options if o.id == option_id), None)
 
 
+@cache
+def _rules_file() -> dict:
+    data = json.loads(RULES_FILE.read_text(encoding="utf-8"))
+    if data.get("version") not in SUPPORTED_VERSIONS:
+        raise ValueError(f"지원하지 않는 규칙 파일 버전: {data.get('version')}")
+    return data
+
+
 def _parse_document(rule_id: str, option: dict) -> OptionDocument | None:
     data = option.get("document")
     if data is None:
@@ -102,14 +110,16 @@ def _parse_document(rule_id: str, option: dict) -> OptionDocument | None:
 
 @cache
 def load_rule_catalog() -> tuple[RuleInfo, ...]:
-    data = json.loads(RULES_FILE.read_text(encoding="utf-8"))
-    if data.get("version") not in SUPPORTED_VERSIONS:
-        raise ValueError(f"지원하지 않는 규칙 파일 버전: {data.get('version')}")
+    data = _rules_file()
+    groups = data.get("merge_groups", {})
 
     rules = []
     for item in data["rules"]:
         if item["scope"] not in SCOPE_LABELS:
             raise ValueError(f"알 수 없는 규칙 범위: {item['id']} {item['scope']}")
+        if item.get("merge_group") and item["merge_group"] not in groups:
+            # 묶음 이름은 보완 기획안에 그대로 실린다. 내부 키가 사용자에게 보이지 않게 막는다
+            raise ValueError(f"{item['id']}: 묶음 {item['merge_group']}의 한글 이름이 없습니다 (merge_groups)")
         options = tuple(
             OptionSpec(
                 id=o["id"],
@@ -136,6 +146,17 @@ def load_rule_catalog() -> tuple[RuleInfo, ...]:
             )
         )
     return tuple(rules)
+
+
+@cache
+def merge_group_labels() -> dict[str, str]:
+    """묶음 키 → 사람이 읽는 이름. 화면과 보완 기획안이 함께 쓴다."""
+    load_rule_catalog()  # 이름이 빠진 묶음은 여기서 걸러진다
+    return dict(_rules_file().get("merge_groups", {}))
+
+
+def merge_group_label(group: str) -> str:
+    return merge_group_labels().get(group, group)
 
 
 @cache

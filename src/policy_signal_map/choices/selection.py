@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from ..review.outcome import ReviewOutcome, ReviewResult
+from ..review.rules import merge_group_label
 from .models import Availability, Choice, ChoiceSet, Decision, ExecutionInput
 
 REQUIRED_EXECUTION_FIELD = "collect_items"
@@ -125,7 +126,7 @@ def pending_from_choices(choice_set: ChoiceSet, result: ReviewResult) -> list[st
             pending.append(f"{outcome.rule_id} {outcome.title}: 보류")
     for merge_group, execution in choice_set.executions.items():
         for label in execution.pending_labels():
-            pending.append(f"{merge_group}: {label}")
+            pending.append(f"{merge_group_label(merge_group)}: {label}")
     return pending
 
 

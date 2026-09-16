@@ -14,8 +14,6 @@ templates = Jinja2Templates(directory=WEB_DIR / "templates")
 templates.env.globals.update(labels=labels, region_label=region_label)
 templates.env.filters.update(formatting.FILTERS)
 
-LAST_STEP = len(labels.STEP_LABELS)
-
 
 def with_cookie(response: Response, session_id: str) -> Response:
     response.set_cookie(COOKIE_NAME, session_id, httponly=True, samesite="lax")

@@ -9,9 +9,21 @@ FORBIDDEN = re.compile(r'[\\/:*?"<>|\r\n\t]')
 MAX_NAME = 60
 
 
-def document_filename(plan_name: str, today: date) -> str:
+def _stem(plan_name: str) -> str:
     cleaned = FORBIDDEN.sub("", plan_name).strip()
     cleaned = re.sub(r"\s+", "_", cleaned)[:MAX_NAME].strip("_")
-    cleaned = cleaned.rstrip(". ")  # 윈도에서 마침표·공백으로 끝나는 이름은 저장이 막힌다
+    return cleaned.rstrip(". ")  # 윈도에서 마침표·공백으로 끝나는 이름은 저장이 막힌다
+
+
+def _named(prefix: str, plan_name: str, today: date) -> str:
+    stem = _stem(plan_name)
     stamp = today.strftime("%Y%m%d")
-    return f"보완기획안_{cleaned}_{stamp}.md" if cleaned else f"보완기획안_{stamp}.md"
+    return f"{prefix}_{stem}_{stamp}.md" if stem else f"{prefix}_{stamp}.md"
+
+
+def document_filename(plan_name: str, today: date) -> str:
+    return _named("보완기획안", plan_name, today)
+
+
+def request_filename(plan_name: str, today: date) -> str:
+    return _named("정밀분석요청서", plan_name, today)

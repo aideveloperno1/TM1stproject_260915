@@ -99,7 +99,7 @@ def test_pending_items_are_listed():
     c.post("/step/4", data={**ADOPT_A, "owner": "", "cycle": "", "availability": "negotiating"})
     text = text_of(c.get("/step/4").text)
     assert "추가 확정 필요" in text
-    assert "participation_data: 수집 담당자" in text
+    assert "참여 실적 자료: 수집 담당자" in text  # 내부 묶음 키를 그대로 보여주지 않는다
 
 
 def test_notice_does_not_block_next_step():

@@ -9,7 +9,7 @@ from ..formatting import amount
 from ..labels import DATA_STATUS_LABELS, GOAL_LABELS, INDICATOR_USE_LABELS, METRIC_LABELS
 from ..plan.models import BudgetStatus, Goal, Metric, PlanInput
 from ..plan.regions import region_label
-from .models import NOT_IN_PLAN, Line, Section
+from .models import NOT_IN_PLAN, PENDING_MARK, Line, Section
 
 
 def goal_labels(plan: PlanInput, exclude: Goal | None = None) -> str:
@@ -32,7 +32,7 @@ def budget_text(plan: PlanInput) -> str:
     if plan.budget.status is BudgetStatus.AMOUNT and plan.budget.krw is not None:
         return amount(plan.budget.krw, "원")
     if plan.budget.status is BudgetStatus.UNDECIDED:
-        return "미정 **[추가 확정 필요]**"
+        return f"미정 {PENDING_MARK}"
     return NOT_IN_PLAN
 
 
