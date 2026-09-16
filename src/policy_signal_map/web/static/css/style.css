@@ -1064,6 +1064,17 @@ textarea.input {
   background: var(--primary-soft);
 }
 
+.cell-add {
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.print-note {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
 .doc-source {
   margin: 0;
   padding: 16px;
@@ -1076,4 +1087,96 @@ textarea.input {
   color: var(--text-2);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* ---------- 인쇄·PDF 저장 ----------
+   [PDF로 저장]은 브라우저 인쇄 대화상자를 연다(대상: PDF로 저장).
+   배경색은 인쇄에서 꺼지는 경우가 많아, 변경 표시는 왼쪽 선과 글자로 남긴다. */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  body {
+    background: #fff;
+    font-size: 10.5pt;
+  }
+
+  .topbar,
+  .rail,
+  .head-actions,
+  .form-foot,
+  .btn,
+  .print-note,
+  [data-save-note] {
+    display: none !important;
+  }
+
+  .page {
+    padding: 0;
+    max-width: none;
+  }
+
+  .stack {
+    gap: 0;
+  }
+
+  .card,
+  .card-lg {
+    box-shadow: none;
+    border: 1px solid #c8d0dc;
+    border-radius: 6px;
+    margin-bottom: 6mm;
+    padding: 6mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .doc-line,
+  .trace-item {
+    background: #fff;
+    border-color: #c8d0dc;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .doc-line-changed,
+  .doc-line-added {
+    border-left: 3px solid #1b2430;
+  }
+
+  .doc-line-pending {
+    border-left: 3px dashed #1b2430;
+  }
+
+  .table-scroll {
+    overflow: visible;
+  }
+
+  /* A4 인쇄 폭은 약 186mm다. 표가 잘리지 않게 최소 폭을 풀고 칸 안에서 줄을 바꾼다 */
+  .data-table {
+    font-size: 9pt;
+    min-width: 0;
+  }
+
+  .data-table th,
+  .data-table td {
+    overflow-wrap: break-word; /* anywhere는 "(추가)" 같은 짧은 말도 쪼갠다 */
+  }
+
+  .doc-source {
+    font-size: 8.5pt;
+    border-color: #c8d0dc;
+  }
+
+  .site-foot {
+    margin-top: 4mm;
+    color: #1b2430;
+  }
+
+  /* 화면 안 이동 링크의 주소는 인쇄물에 적지 않는다 */
+  a[href]::after {
+    content: "";
+  }
 }

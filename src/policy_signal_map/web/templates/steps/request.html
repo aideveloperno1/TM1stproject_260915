@@ -10,6 +10,7 @@
       </div>
       <span class="head-actions">
         <a class="btn btn-ghost" href="/step/5">← 비교 화면으로</a>
+        <button type="button" class="btn btn-ghost" data-print-button>PDF로 저장</button>
         <button type="button" class="btn btn-primary" data-save-button data-url="/step/5/download?kind=request" data-filename="{{ filename }}">요청서 저장</button>
       </span>
     </div>
@@ -39,4 +40,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', path='js/save.js') }}"></script>
+<script src="{{ url_for('static', path='js/print.js') }}"></script>
 {% endblock %}

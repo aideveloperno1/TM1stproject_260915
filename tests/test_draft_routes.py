@@ -9,6 +9,9 @@ from fastapi.testclient import TestClient
 from helpers import VALID_FORM
 
 from policy_signal_map.app import app
+from policy_signal_map.paths import WEB_DIR
+
+STATIC_DIR = WEB_DIR / "static"
 
 ADOPT_A = {
     "question_key": "R07",
@@ -129,6 +132,23 @@ def test_request_download_uses_its_own_filename():
 def test_request_download_without_option_d_is_not_found():
     response = answered_client().get("/step/5/download?kind=request")
     assert response.status_code == 404
+
+
+def test_pdf_button_is_on_every_result_screen():
+    c = answered_client(choice={"question_key": "R07", "decision": "adopt", "option_id": "D"})
+    for path in ("/step/5", "/step/5/document", "/step/5/request"):
+        html = c.get(path).text
+        assert "data-print-button" in html, path
+        assert "PDF로 저장" in html, path
+        assert "js/print.js" in html, path
+
+
+def test_print_stylesheet_hides_screen_only_parts():
+    css = (STATIC_DIR / "css" / "style.css").read_text(encoding="utf-8")
+    print_block = css[css.index("@media print") :]
+    for selector in (".topbar", ".rail", ".head-actions", ".btn"):
+        assert selector in print_block
+    assert ".site-foot" in print_block  # 합성 수치·공모전 고지는 인쇄본에도 남는다
 
 
 def test_step_five_error_page_when_evidence_fails(use_evidence):

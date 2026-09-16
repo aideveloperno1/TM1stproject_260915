@@ -15,6 +15,7 @@
         {% if document.request_draft %}
           <a class="btn btn-ghost" href="/step/5/request">정밀 분석 요청서 초안</a>
         {% endif %}
+        <button type="button" class="btn btn-ghost" data-print-button>PDF로 저장</button>
         <button type="button" class="btn btn-primary" data-save-button data-url="/step/5/download" data-filename="{{ filename }}">결과 저장</button>
       </span>
     </div>
@@ -22,6 +23,7 @@
       변경 {{ document.changes | length }}건 · 추가 확정 필요 {{ document.pending | length }}건 · 원안 유지 {{ document.unchanged_sections }}개 장
     </p>
     <p class="note" data-save-note hidden></p>
+    <p class="print-note">[결과 저장]은 고쳐 쓸 수 있는 Markdown 파일, [PDF로 저장]은 그대로 공유하는 사본입니다. PDF는 인쇄 창에서 대상을 ‘PDF로 저장’으로 고르세요.</p>
   </section>
 
   {% for section in document.sections %}
@@ -72,7 +74,11 @@
             {% for change in document.changes %}
               <tr>
                 <td>{{ change.section }}</td>
-                <td>{{ change.before or "(추가)" }}</td>
+                {% if change.before %}
+                  <td>{{ change.before }}</td>
+                {% else %}
+                  <td class="cell-add">(추가)</td>
+                {% endif %}
                 <td>{{ change.after }}</td>
                 <td>{{ change.rule_id }}{% if change.option_id %} · 대안 {{ change.option_id }}{% endif %}</td>
                 <td>{{ change.decision_label }}</td>
@@ -99,4 +105,5 @@
 {% block scripts %}
 <script src="{{ url_for('static', path='js/save.js') }}"></script>
 <script src="{{ url_for('static', path='js/trace.js') }}"></script>
+<script src="{{ url_for('static', path='js/print.js') }}"></script>
 {% endblock %}
