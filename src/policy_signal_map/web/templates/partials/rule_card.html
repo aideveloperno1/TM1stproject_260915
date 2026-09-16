@@ -26,16 +26,5 @@
   {% if outcome.related_rule_ids %}
     <p class="note">함께 확인: {{ outcome.related_rule_ids | join(", ") }} · 같은 자료를 묻는 질문이라 보완 선택에서 한 번만 입력하면 됩니다.</p>
   {% endif %}
-
-  {% if outcome.options %}
-    <div class="option-preview">
-      <span class="option-preview-title">보완 선택에서 고를 수 있는 방법</span>
-      <ul class="plain-list">
-        {% for option in outcome.options %}
-          <li>{{ option.id }} {{ option.title }} — 바뀌는 곳 {{ option.where }} · 필요 자료 {{ option.need }} · 운영 부담 {{ option.load }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-  {% endif %}
 </article>
 {% endmacro %}

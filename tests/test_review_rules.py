@@ -183,10 +183,28 @@ def test_r06_and_r02_are_not_reviewed():
 def test_related_questions_point_to_each_other_without_merging_cards():
     result = run_review(plan(target="방한 관광객", period_start="2026-10-01", period_end="2026-10-20"), DEMO)
     r07, r03, r04 = outcome(result, "R07"), outcome(result, "R03"), outcome(result, "R04")
-    assert {o.question_key for o in (r07, r03, r04)} == {"participation_data"}
+    assert {o.merge_group for o in (r07, r03, r04)} == {"participation_data"}
     assert set(r07.related_rule_ids) == {"R03", "R04"}
     assert set(r03.related_rule_ids) == {"R07", "R04"}
     assert len([o for o in result.outcomes if o.kind == "question"]) == 3
+
+
+def test_question_keys_are_unique_so_choices_do_not_mix():
+    """4단계 선택이 질문마다 따로 저장되려면 키가 겹치면 안 된다."""
+    result = run_review(plan(target="방한 관광객", period_start="2026-10-01", period_end="2026-10-20"), DEMO)
+    keys = [o.question_key for o in result.outcomes]
+    assert keys == sorted(set(keys), key=keys.index)
+    assert [o.question_key for o in result.outcomes] == [o.rule_id for o in result.outcomes]
+    assert result.by_key("R03").rule_id == "R03"
+    assert {o.rule_id for o in result.in_merge_group("participation_data")} == {"R07", "R03", "R04"}
+
+
+def test_all_json_messages_avoid_judgment_words():
+    """실행되지 않은 문구도 검사한다 (보류·검토하지 않음 등)."""
+    for rule in load_rule_catalog():
+        for key, text in rule.messages.items():
+            for word in FORBIDDEN_WORDS:
+                assert word not in text, (rule.id, key, word)
 
 
 def test_notice_is_not_related_to_questions():

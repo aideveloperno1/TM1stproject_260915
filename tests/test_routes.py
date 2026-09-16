@@ -54,6 +54,15 @@ def test_resubmitting_changed_plan_shows_recheck_notice():
     assert "재확인이 필요합니다" in c.get("/step/4").text
 
 
+def test_recheck_notice_disappears_after_unchanged_resubmit():
+    c = client()
+    c.post("/step/1", data=VALID_FORM)
+    c.post("/step/1", data={**VALID_FORM, "indicator_use": "reference"})
+    c.post("/step/1", data={**VALID_FORM, "indicator_use": "reference"})  # 바뀐 것 없이 다시 제출
+    assert "원안이 바뀌어 검토를 다시 실행했습니다" not in c.get("/step/3").text
+    assert "재확인이 필요합니다" not in c.get("/step/4").text
+
+
 def test_sample_button_fills_form():
     response = client().post("/step/1", data={"action": "sample"})
     assert 'value="하반기 외국인 소비지원 쿠폰"' in response.text

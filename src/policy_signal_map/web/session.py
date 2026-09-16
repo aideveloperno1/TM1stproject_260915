@@ -22,12 +22,12 @@ class WorkState:
     plan: PlanInput = field(default_factory=PlanInput)
     # [검토 시작] 시점에 보관한 원안. 보완 기획안의 "변경 전" 기준이 된다.
     original: PlanInput | None = None
-    # 검토를 시작한 뒤 원안을 바꿔 다시 제출했는지. 이후 단계의 선택을 재확인할 때 쓴다.
+    # 이번 제출에서 원안이 바뀌었는지. 이후 단계의 선택을 재확인할 때 쓴다.
+    # 한 번 켜지면 계속 남지 않도록 제출할 때마다 다시 정한다 (4번에서 plan/changes.py의 항목별 재확인으로 대체 예정)
     review_restarted: bool = False
 
     def start_review(self) -> None:
-        if self.original is not None and self.original != self.plan:
-            self.review_restarted = True
+        self.review_restarted = self.original is not None and self.original != self.plan
         self.original = deepcopy(self.plan)
 
 

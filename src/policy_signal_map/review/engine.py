@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from ..evidence.loader import LoadResult
 from ..plan.models import PlanInput
 from . import basic_checks, r07_indicator
 from .context import region_note, scope_label, select_main_record
 from .outcome import NoFinding, ReviewOutcome, ReviewResult, not_reviewed_from
-from .rules import RuleInfo, load_rule_catalog, rules_by_id
+from .rules import RuleInfo, load_rule_catalog, rules_by_id  # noqa: F401  (rules_by_id는 run_review에서 사용)
 
 # 화면에 보여줄 순서: 성과지표 → 대상 → 기간 → 목표·사용처 → 운영 조건
 RUN_ORDER = ("R07", "R03", "R04", "R01", "R05")
@@ -26,27 +28,19 @@ def check_rule_functions() -> None:
 
 def _with_related(outcomes: list[ReviewOutcome]) -> tuple[ReviewOutcome, ...]:
     """같은 merge_group 질문끼리 서로를 가리킨다. 카드를 합치지는 않는다 (3검토질문계획 결정 ④)."""
-    rules = rules_by_id()
     result = []
     for outcome in outcomes:
-        group = rules[outcome.rule_id].merge_group
         related = (
             tuple(
                 other.rule_id
                 for other in outcomes
-                if other is not outcome and rules[other.rule_id].merge_group == group and other.kind == "question"
+                if other is not outcome and other.merge_group == outcome.merge_group and other.kind == "question"
             )
-            if group and outcome.kind == "question"
+            if outcome.merge_group and outcome.kind == "question"
             else ()
         )
-        result.append(outcome if not related else _replace_related(outcome, related))
+        result.append(outcome if not related else replace(outcome, related_rule_ids=related))
     return tuple(result)
-
-
-def _replace_related(outcome: ReviewOutcome, related: tuple[str, ...]) -> ReviewOutcome:
-    from dataclasses import replace
-
-    return replace(outcome, related_rule_ids=related)
 
 
 def _run_rule(

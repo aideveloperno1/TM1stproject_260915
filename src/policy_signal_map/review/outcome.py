@@ -17,8 +17,10 @@ OutcomeKind = Literal["question", "notice", "pending", "held", "not_reviewed"]
 @dataclass(frozen=True)
 class ReviewOutcome:
     rule_id: str
-    # 4단계 선택이 참조하는 키. 같은 merge_group 질문끼리 추가 입력을 공유한다
+    # 4단계 선택이 참조하는 키. 질문마다 달라야 선택이 섞이지 않으므로 규칙 ID를 쓴다
     question_key: str
+    # 같은 값을 가진 질문끼리 4단계에서 추가 입력(수집자료·담당자·주기)을 공유한다
+    merge_group: str | None
     kind: OutcomeKind
     title: str
     message: str
@@ -77,6 +79,10 @@ class ReviewResult:
 
     def by_key(self, question_key: str) -> ReviewOutcome | None:
         return next((o for o in self.outcomes if o.question_key == question_key), None)
+
+    def in_merge_group(self, merge_group: str) -> tuple[ReviewOutcome, ...]:
+        """4단계에서 추가 입력을 공유할 질문들."""
+        return tuple(o for o in self.outcomes if o.merge_group == merge_group and o.kind == "question")
 
 
 def not_reviewed_from(rule: RuleInfo) -> NotReviewed:

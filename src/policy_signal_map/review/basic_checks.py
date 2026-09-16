@@ -21,7 +21,8 @@ CARD_METRICS = (Metric.FOREIGN_SHARE, Metric.FOREIGN_AMOUNT)
 def _outcome(rule: RuleInfo, kind: str, message: str) -> ReviewOutcome:
     return ReviewOutcome(
         rule_id=rule.id,
-        question_key=rule.merge_group or rule.id,
+        question_key=rule.id,
+        merge_group=rule.merge_group,
         kind=kind,  # type: ignore[arg-type]
         title=rule.title,
         message=message,

@@ -29,7 +29,8 @@ def applies_to(plan: PlanInput) -> bool:
 def _held(rule: RuleInfo, key: str, scope_label: str | None, region_note: str | None, **values: object) -> ReviewOutcome:
     return ReviewOutcome(
         rule_id=rule.id,
-        question_key=rule.merge_group or rule.id,
+        question_key=rule.id,
+        merge_group=rule.merge_group,
         kind="held",
         title=rule.title,
         message=rule.message(key, **values),
@@ -92,7 +93,8 @@ def run(
 
     return ReviewOutcome(
         rule_id=rule.id,
-        question_key=rule.merge_group or rule.id,
+        question_key=rule.id,
+        merge_group=rule.merge_group,
         kind=kind,
         title=rule.title,
         message=message,

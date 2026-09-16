@@ -37,6 +37,8 @@
 ```
 ReviewOutcome
   rule_id: str
+  question_key: str               4단계 선택이 참조. 규칙 ID와 같아 질문마다 다르다
+  merge_group: str | None         같은 값끼리 4단계에서 추가 입력을 공유
   kind: "question" | "notice" | "pending" | "not_reviewed" | "held"
       question      담당자 선택이 필요한 질문
       notice        오류 없이 해석 조건만 안내 (예: 참고용 지표)
