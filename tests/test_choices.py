@@ -1,0 +1,220 @@
+"""보완 선택 로직 (4보완선택계획.md 3~5장)."""
+
+from evidence_helpers import fixture_path
+
+from policy_signal_map.choices.models import Availability, ChoiceSet, Decision, ExecutionInput
+from policy_signal_map.choices.recheck import archive_missing, mark_recheck, sync_after_review
+from policy_signal_map.choices.selection import (
+    apply_choice,
+    blocking_reasons,
+    cancel_choice,
+    pending_from_choices,
+)
+from policy_signal_map.config import DEFAULT_EVIDENCE_PATH
+from policy_signal_map.evidence.loader import load_evidence
+from policy_signal_map.plan.models import IndicatorUse, Metric, sample_plan
+from policy_signal_map.review.engine import run_review
+
+DEMO = load_evidence(DEFAULT_EVIDENCE_PATH)
+ADOPT_A = {"decision": "adopt", "option_id": "A", "owner": "관광과 김담당", "cycle": "월 1회", "availability": "available"}
+
+
+def review(**changes):
+    plan = sample_plan()
+    for key, value in changes.items():
+        setattr(plan, key, value)
+    return plan, run_review(plan, DEMO)
+
+
+def outcome_of(result, rule_id: str):
+    return next(o for o in result.outcomes if o.rule_id == rule_id)
+
+
+def test_adopt_option_a_saves_choice_and_execution():
+    _, result = review()
+    choice_set = ChoiceSet()
+    errors = apply_choice(choice_set, outcome_of(result, "R07"), ADOPT_A, ["쿠폰 사용 실적"])
+
+    assert errors == {}
+    choice = choice_set.get("R07")
+    assert choice.decision is Decision.ADOPT and choice.option_id == "A"
+    assert choice.evidence_ids == ("DEMO-R07-NATIONAL",)
+    execution = choice_set.execution_for("participation_data")
+    assert execution.collect_items == ("쿠폰 사용 실적",)
+    assert execution.owner == "관광과 김담당"
+
+
+def test_decision_must_be_known():
+    _, result = review()
+    errors = apply_choice(ChoiceSet(), outcome_of(result, "R07"), {"decision": "maybe"})
+    assert errors == {"decision": "선택 항목을 골라 주세요."}
+
+
+def test_adopt_requires_known_option():
+    _, result = review()
+    outcome = outcome_of(result, "R07")
+    assert apply_choice(ChoiceSet(), outcome, {"decision": "adopt"}) == {"option_id": "대안을 골라 주세요."}
+    assert apply_choice(ChoiceSet(), outcome, {"decision": "adopt", "option_id": "Z"}) == {
+        "option_id": "대안을 골라 주세요."
+    }
+
+
+def test_modify_requires_text():
+    _, result = review()
+    outcome = outcome_of(result, "R07")
+    assert apply_choice(ChoiceSet(), outcome, {"decision": "modify", "option_id": "B"}) == {
+        "modified_text": "수정할 내용을 적어 주세요."
+    }
+
+    choice_set = ChoiceSet()
+    assert apply_choice(
+        choice_set, outcome, {"decision": "modify", "option_id": "B", "modified_text": "분모 기준만 적는다"}
+    ) == {}
+    assert choice_set.get("R07").modified_text == "분모 기준만 적는다"
+
+
+def test_execution_requires_collect_items():
+    _, result = review()
+    errors = apply_choice(ChoiceSet(), outcome_of(result, "R07"), ADOPT_A, [])
+    assert errors == {"collect_items": "수집할 자료를 하나 이상 적어 주세요."}
+
+
+def test_unknown_availability_is_rejected():
+    _, result = review()
+    form = {**ADOPT_A, "availability": "언젠가"}
+    assert apply_choice(ChoiceSet(), outcome_of(result, "R07"), form, ["쿠폰 사용 실적"]) == {
+        "availability": "확보 여부를 다시 골라 주세요."
+    }
+
+
+def test_owner_and_cycle_may_be_empty_and_become_pending():
+    _, result = review()
+    choice_set = ChoiceSet()
+    form = {"decision": "adopt", "option_id": "A", "availability": "negotiating"}
+    assert apply_choice(choice_set, outcome_of(result, "R07"), form, ["쿠폰 사용 실적"]) == {}
+
+    pending = pending_from_choices(choice_set, result)
+    assert "participation_data: 수집 담당자" in pending
+    assert "participation_data: 확인 주기" in pending
+    assert "participation_data: 자료 확보 협의 (협의 중)" in pending
+
+
+def test_keep_original_and_hold_clear_option_fields():
+    _, result = review()
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "keep_original", "option_id": "A"})
+    choice = choice_set.get("R07")
+    assert choice.decision is Decision.KEEP_ORIGINAL
+    assert choice.option_id is None and not choice.changes_document
+
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "hold"})
+    assert choice_set.get("R07").decision is Decision.HOLD
+    assert "R07 금액·비중과 성과지표 확인: 보류" in pending_from_choices(choice_set, result)
+
+
+def test_cancel_removes_choice_and_unused_execution():
+    _, result = review()
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), ADOPT_A, ["쿠폰 사용 실적"])
+    assert cancel_choice(choice_set, "R07").rule_id == "R07"
+    assert choice_set.get("R07") is None
+    assert choice_set.execution_for("participation_data") is None
+
+
+def test_shared_execution_is_kept_while_another_question_uses_it():
+    plan, result = review(target="방한 관광객")
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), ADOPT_A, ["쿠폰 사용 실적"])
+    apply_choice(choice_set, outcome_of(result, "R03"), {"decision": "adopt", "option_id": "A"}, ["정산 자료"])
+
+    assert choice_set.execution_for("participation_data").collect_items == ("정산 자료",)
+    cancel_choice(choice_set, "R07")
+    assert choice_set.execution_for("participation_data") is not None  # R03이 아직 쓰고 있음
+    cancel_choice(choice_set, "R03")
+    assert choice_set.execution_for("participation_data") is None
+
+
+def test_notice_can_be_chosen_but_is_not_required():
+    _, result = review(indicator_use=IndicatorUse.REFERENCE)
+    outcome = outcome_of(result, "R07")
+    assert outcome.kind == "notice" and not outcome.needs_choice
+
+    choice_set = ChoiceSet()
+    assert blocking_reasons(result, choice_set) == []  # 고르지 않아도 다음 단계로 간다
+    assert apply_choice(choice_set, outcome, {"decision": "adopt", "option_id": "B"}) == {}
+
+
+def test_blocking_reasons_list_unanswered_questions():
+    _, result = review(target="방한 관광객")
+    choice_set = ChoiceSet()
+    reasons = blocking_reasons(result, choice_set)
+    assert len(reasons) == 2
+    assert any(r.startswith("R07") and "아직 고르지" in r for r in reasons)
+
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "hold"})
+    apply_choice(choice_set, outcome_of(result, "R03"), {"decision": "keep_original"})
+    assert blocking_reasons(result, choice_set) == []  # 보류도 결정으로 인정
+
+
+def test_recheck_marks_only_related_choices():
+    _, result = review(target="방한 관광객")
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "hold"})
+    apply_choice(choice_set, outcome_of(result, "R03"), {"decision": "keep_original"})
+
+    assert mark_recheck(choice_set, frozenset({"name"})) == ()
+    assert not any(c.needs_recheck for c in choice_set.choices.values())
+
+    assert set(mark_recheck(choice_set, frozenset({"target"}))) == {"R07", "R03"}
+    assert blocking_reasons(result, choice_set)[0].endswith("다시 확인이 필요합니다")
+
+
+def test_recheck_marks_budget_change_only_for_r05_related_choice():
+    _, result = review()
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "hold"})
+    assert mark_recheck(choice_set, frozenset({"budget"})) == ()  # R07은 예산과 무관
+
+
+def test_archive_moves_choices_for_questions_that_disappeared():
+    _, result = review(target="방한 관광객")
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R03"), {"decision": "keep_original"})
+
+    _, narrowed = review()  # 대상을 되돌려 R03 질문이 사라진 검토
+    assert archive_missing(choice_set, narrowed) == ("R03",)
+    assert choice_set.get("R03") is None
+    assert choice_set.archived[0].reason == "원안 변경으로 더 이상 해당하지 않음"
+
+
+def test_sync_after_review_archives_and_marks():
+    _, result = review(target="방한 관광객")
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "hold"})
+    apply_choice(choice_set, outcome_of(result, "R03"), {"decision": "keep_original"})
+
+    _, narrowed = review()
+    sync_after_review(choice_set, narrowed, frozenset({"target"}))
+    assert [a.choice.rule_id for a in choice_set.archived] == ["R03"]
+    assert choice_set.get("R07").needs_recheck
+
+
+def test_held_question_has_no_options_so_cannot_be_adopted():
+    plan = sample_plan()
+    held = run_review(plan, load_evidence(fixture_path("missing_month")))
+    outcome = outcome_of(held, "R07")
+    assert outcome.kind == "held"
+    assert apply_choice(ChoiceSet(), outcome, {"decision": "adopt", "option_id": "A"}) == {
+        "option_id": "대안을 골라 주세요."
+    }
+
+
+def test_execution_pending_labels():
+    assert ExecutionInput(collect_items=("자료",), availability=Availability.AVAILABLE, owner="담당", cycle="월 1회").pending_labels() == []
+    assert ExecutionInput().pending_labels() == ["수집 담당자", "확인 주기", "자료 확보 여부"]
+
+
+def test_rule_without_card_metric_has_no_question_to_answer():
+    _, result = review(metrics=[Metric.COUPON_USAGE])
+    assert all(o.rule_id != "R07" for o in result.outcomes)
+    assert blocking_reasons(result, ChoiceSet()) == []

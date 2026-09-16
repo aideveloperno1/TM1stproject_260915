@@ -37,7 +37,11 @@ class ReviewOutcome:
 
     @property
     def needs_choice(self) -> bool:
+        """질문만 선택이 필수다. 안내는 고를 수 있지만 필수가 아니다 (4보완선택계획 결정 ④·⑥)."""
         return self.kind == "question"
+
+    def option(self, option_id: str) -> OptionSpec | None:
+        return next((o for o in self.options if o.id == option_id), None)
 
     def to_llm_summary(self) -> dict[str, Any]:
         """C 단계용 요약. 금액·비중·구간 수 같은 수치를 넣지 않는다."""
