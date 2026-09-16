@@ -27,6 +27,21 @@ SCOPE_LABELS: dict[RuleScope, str] = {
 FORBIDDEN_WORDS = ("문제", "오류", "위험", "실패", "성공", "잘못")
 
 
+SECTION_NUMBERS = range(1, 9)
+DOCUMENT_MODES = ("append", "replace")
+
+
+@dataclass(frozen=True)
+class OptionDocument:
+    """대안을 채택했을 때 보완 기획안에 들어갈 문장 (5보완기획안계획.md 3장)."""
+
+    section: int
+    mode: str
+    lines: tuple[str, ...]
+    replace_key: str | None = None
+    appendix: str | None = None
+
+
 @dataclass(frozen=True)
 class OptionSpec:
     id: str
@@ -35,6 +50,7 @@ class OptionSpec:
     need: str
     load: str
     execution_fields: tuple[str, ...]
+    document: OptionDocument | None = None
 
 
 @dataclass(frozen=True)
@@ -65,6 +81,25 @@ class RuleInfo:
         return next((o for o in self.options if o.id == option_id), None)
 
 
+def _parse_document(rule_id: str, option: dict) -> OptionDocument | None:
+    data = option.get("document")
+    if data is None:
+        raise ValueError(f"{rule_id} {option['id']} 대안에 문서 문장(document)이 없습니다 (review_rules.json)")
+    if data["section"] not in SECTION_NUMBERS:
+        raise ValueError(f"{rule_id} {option['id']}: 알 수 없는 장 번호 {data['section']}")
+    if data["mode"] not in DOCUMENT_MODES:
+        raise ValueError(f"{rule_id} {option['id']}: 알 수 없는 반영 방식 {data['mode']}")
+    if data["mode"] == "replace" and not data.get("replace_key"):
+        raise ValueError(f"{rule_id} {option['id']}: 교체 방식에는 replace_key가 필요합니다")
+    return OptionDocument(
+        section=data["section"],
+        mode=data["mode"],
+        lines=tuple(data["lines"]),
+        replace_key=data.get("replace_key"),
+        appendix=data.get("appendix"),
+    )
+
+
 @cache
 def load_rule_catalog() -> tuple[RuleInfo, ...]:
     data = json.loads(RULES_FILE.read_text(encoding="utf-8"))
@@ -83,6 +118,7 @@ def load_rule_catalog() -> tuple[RuleInfo, ...]:
                 need=o["need"],
                 load=o["load"],
                 execution_fields=tuple(o.get("execution_fields", ())),
+                document=_parse_document(item["id"], o),
             )
             for o in item.get("options", ())
         )

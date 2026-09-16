@@ -8,8 +8,17 @@
       "scope": "implement",
       "summary": "성과지표가 금액·비중 목표와 맞는지, 두 지표의 방향 차이 확인",
       "merge_group": "participation_data",
-      "related_fields": ["goals", "metrics", "indicator_use", "region", "target"],
-      "document_targets": ["7. 성과 측정계획", "8. 추가 확인사항"],
+      "related_fields": [
+        "goals",
+        "metrics",
+        "indicator_use",
+        "region",
+        "target"
+      ],
+      "document_targets": [
+        "7. 성과 측정계획",
+        "8. 추가 확인사항"
+      ],
       "messages": {
         "question_direct": "외국인 결제 비중은 외국인 결제금액뿐 아니라 전체 결제금액의 변화에도 영향을 받습니다. 이 사업에서 확인하려는 것은 외국인 결제금액 확대인가요, 전체 결제에서 외국인 비중 확대인가요? 직접 성과평가에 쓴다면 참여자의 쿠폰 사용·정산 자료를 따로 모을 수 있는지도 알려 주세요.",
         "question_unknown": "선택한 지표를 참고 현황으로 쓸지, 사업 성과를 직접 평가하는 기준으로 쓸지에 따라 확인할 자료가 달라집니다. 어느 쪽에 가까운지 알려 주세요.",
@@ -29,7 +38,23 @@
           "where": "7. 성과 측정계획",
           "need": "쿠폰 발급·사용·정산 자료",
           "load": "중",
-          "execution_fields": ["collect_items", "availability", "owner", "cycle"]
+          "execution_fields": [
+            "collect_items",
+            "availability",
+            "owner",
+            "cycle"
+          ],
+          "document": {
+            "section": 7,
+            "mode": "append",
+            "lines": [
+              "주요 지표: {collect_items}",
+              "참고 지표: 외국인 결제금액·비중(전체 분모·미상 제외)",
+              "수집 담당: {owner}",
+              "확인 주기: {cycle}",
+              "자료 확보 여부: {availability}"
+            ]
+          }
         },
         {
           "id": "B",
@@ -37,7 +62,15 @@
           "where": "7. 성과 측정계획",
           "need": "없음",
           "load": "낮음",
-          "execution_fields": []
+          "execution_fields": [],
+          "document": {
+            "section": 7,
+            "mode": "append",
+            "lines": [
+              "지표 해석 조건: 분모 기준(전체·미상 제외)과 전국 참고 범위를 함께 기록",
+              "카드 지표는 단독 성과 판정에 사용하지 않음"
+            ]
+          }
         },
         {
           "id": "C",
@@ -45,7 +78,14 @@
           "where": "8. 추가 확인사항",
           "need": "협의 대상",
           "load": "낮음",
-          "execution_fields": []
+          "execution_fields": [],
+          "document": {
+            "section": 8,
+            "mode": "append",
+            "lines": [
+              "성과 확인 자료 확보 방안 협의 (담당·일정 미정)"
+            ]
+          }
         },
         {
           "id": "D",
@@ -53,7 +93,15 @@
           "where": "별첨 3",
           "need": "BC 협의",
           "load": "비용 확인 필요",
-          "execution_fields": []
+          "execution_fields": [],
+          "document": {
+            "section": 8,
+            "mode": "append",
+            "lines": [
+              "정밀 분석 요청서 초안을 별첨 3으로 첨부 (계약·자료 제공이 확정된 것은 아님)"
+            ],
+            "appendix": "request"
+          }
         }
       ]
     },
@@ -62,8 +110,13 @@
       "title": "목표와 사용처 확인",
       "scope": "basic",
       "summary": "목표와 쿠폰 사용처가 맞는지 확인",
-      "related_fields": ["goals", "usage_place"],
-      "document_targets": ["4. 혜택·사용처"],
+      "related_fields": [
+        "goals",
+        "usage_place"
+      ],
+      "document_targets": [
+        "4. 혜택·사용처"
+      ],
       "messages": {
         "question": "참여 상점 이용 확대가 목표라면 쿠폰을 어디에서 쓸 수 있는지가 함께 정해져야 합니다. 사용처 범위(관내 참여 점포, 특정 상권 등)를 알려 주세요."
       },
@@ -74,7 +127,14 @@
           "where": "4. 혜택·사용처",
           "need": "참여 점포 목록 또는 상권 범위",
           "load": "낮음",
-          "execution_fields": []
+          "execution_fields": [],
+          "document": {
+            "section": 4,
+            "mode": "append",
+            "lines": [
+              "사용처 범위 확정 필요: 참여 점포 목록 또는 상권 범위"
+            ]
+          }
         },
         {
           "id": "B",
@@ -82,7 +142,15 @@
           "where": "2. 목적·대상",
           "need": "없음",
           "load": "낮음",
-          "execution_fields": []
+          "execution_fields": [],
+          "document": {
+            "section": 2,
+            "mode": "replace",
+            "replace_key": "goals",
+            "lines": [
+              "사업 목표: {goals_without_store_usage}"
+            ]
+          }
         }
       ]
     },
@@ -92,8 +160,14 @@
       "scope": "basic",
       "summary": "대상과 성과 자료의 범위가 맞는지 확인",
       "merge_group": "participation_data",
-      "related_fields": ["target", "metrics"],
-      "document_targets": ["2. 목적·대상", "7. 성과 측정계획"],
+      "related_fields": [
+        "target",
+        "metrics"
+      ],
+      "document_targets": [
+        "2. 목적·대상",
+        "7. 성과 측정계획"
+      ],
       "messages": {
         "question": "사업 대상은 관광객인데 성과지표는 외국인 전체의 카드 소비입니다. 제공 자료는 관광객과 거주 외국인을 구분하지 않습니다. 참여자를 확인할 다른 자료를 함께 모을 수 있는지 알려 주세요."
       },
@@ -104,7 +178,21 @@
           "where": "7. 성과 측정계획",
           "need": "쿠폰 발급·사용·정산 자료",
           "load": "중",
-          "execution_fields": ["collect_items", "availability", "owner", "cycle"]
+          "execution_fields": [
+            "collect_items",
+            "availability",
+            "owner",
+            "cycle"
+          ],
+          "document": {
+            "section": 7,
+            "mode": "append",
+            "lines": [
+              "참여자 확인 자료: {collect_items}",
+              "수집 담당: {owner}",
+              "확인 주기: {cycle}"
+            ]
+          }
         },
         {
           "id": "B",
@@ -112,7 +200,15 @@
           "where": "2. 목적·대상",
           "need": "없음",
           "load": "낮음",
-          "execution_fields": []
+          "execution_fields": [],
+          "document": {
+            "section": 2,
+            "mode": "replace",
+            "replace_key": "target",
+            "lines": [
+              "사업 대상: {target} (성과 자료는 외국인 전체 기준이며 관광객과 거주 외국인을 구분하지 않음)"
+            ]
+          }
         }
       ]
     },
@@ -122,8 +218,14 @@
       "scope": "basic",
       "summary": "사업 기간과 집계 주기가 맞는지 확인",
       "merge_group": "participation_data",
-      "related_fields": ["period", "indicator_use"],
-      "document_targets": ["3. 일정", "7. 성과 측정계획"],
+      "related_fields": [
+        "period",
+        "indicator_use"
+      ],
+      "document_targets": [
+        "3. 일정",
+        "7. 성과 측정계획"
+      ],
       "messages": {
         "question": "사업 기간이 한 달이 되지 않습니다. 제공 자료는 월 단위 집계라 사업 기간만 따로 떼어 보기 어렵습니다. 기간에 맞춘 별도 실적을 모을 수 있는지, 확인 주기를 어떻게 할지 알려 주세요."
       },
@@ -134,7 +236,21 @@
           "where": "7. 성과 측정계획",
           "need": "사업 기간 참여 실적",
           "load": "중",
-          "execution_fields": ["collect_items", "availability", "owner", "cycle"]
+          "execution_fields": [
+            "collect_items",
+            "availability",
+            "owner",
+            "cycle"
+          ],
+          "document": {
+            "section": 7,
+            "mode": "append",
+            "lines": [
+              "사업 기간 실적: {collect_items}",
+              "수집 담당: {owner}",
+              "확인 주기: {cycle}"
+            ]
+          }
         },
         {
           "id": "B",
@@ -142,7 +258,14 @@
           "where": "3. 일정",
           "need": "없음",
           "load": "낮음",
-          "execution_fields": []
+          "execution_fields": [],
+          "document": {
+            "section": 3,
+            "mode": "append",
+            "lines": [
+              "카드 지표는 참고 자료로 사용하고, 사업 기간 성과는 {cycle} 주기로 별도 확인"
+            ]
+          }
         }
       ]
     },
@@ -151,8 +274,15 @@
       "title": "빠진 운영 조건 확인",
       "scope": "basic",
       "summary": "예산·사용처·정산 등 운영 조건 누락 표시",
-      "related_fields": ["budget", "usage_place", "data_status"],
-      "document_targets": ["6. 예산 상태", "8. 추가 확인사항"],
+      "related_fields": [
+        "budget",
+        "usage_place",
+        "data_status"
+      ],
+      "document_targets": [
+        "6. 예산 상태",
+        "8. 추가 확인사항"
+      ],
       "messages": {
         "pending": "다음 항목이 아직 정해지지 않았습니다. 보완 기획안에 ‘추가 확정 필요’로 남깁니다: {pending_list}"
       },

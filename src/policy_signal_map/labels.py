@@ -1,6 +1,6 @@
-"""화면에 보이는 선택지 문구."""
+"""선택지 한글 문구. 화면과 보완 기획안 문서가 함께 쓴다 (document/는 web/을 import할 수 없다)."""
 
-from ..plan.models import DataStatus, Goal, IndicatorUse, Metric
+from .plan.models import DataStatus, Goal, IndicatorUse, Metric
 
 GOAL_LABELS: dict[Goal, str] = {
     Goal.FOREIGN_AMOUNT: "외국인 결제금액 확대",

@@ -4,10 +4,9 @@ from fastapi import Request
 from fastapi.responses import RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from .. import formatting
+from .. import formatting, labels
 from ..paths import WEB_DIR
 from ..plan.regions import region_label
-from . import labels
 from .evidence_state import EvidenceState
 from .session import COOKIE_NAME, WorkState
 
