@@ -25,33 +25,41 @@
 ### `models.py`
 
 ```
-Decision = "keep_original" | "adopt" | "modify" | "hold"
+Decision = "keep_original" | "adopt" | "modify" | "hold"      (화면 라벨: 원안 유지·채택·수정·보류)
+Availability = "available" | "negotiating" | "unavailable"   (확보 가능·협의 중·확보 어려움)
 
-Choice
-  rule_ids: list[str]              묶인 질문이면 여러 개
+Choice (frozen)
+  question_key: str                규칙 ID와 같다
+  rule_id: str
   decision: Decision
-  option_id: str | None            adopt/modify일 때 A·B·C·D
-  modified_text: str | None        modify일 때 담당자가 고친 문장
-  execution: ExecutionInput | None 옵션이 요구할 때
-  reason: str                      선택 이유 (선택 입력, 최종기획서 3장 "선택 이유와 변경 내용 기록")
-  status: "confirmed" | "needs_recheck"
-  evidence_ids: list[str]          review 결과에서 그대로 복사
+  merge_group: str | None
+  option_id: str | None            adopt/modify일 때. R07은 A~D, R01·R03·R04는 A·B
+  modified_text: str | None        modify일 때 담당자가 고친 문장 → 문서에서 대안 문장을 대체
+  reason: str                      선택 이유 (선택 입력)
+  evidence_ids: tuple[str]         review 결과에서 그대로 복사
+  needs_recheck: bool
+  changes_document (속성)          adopt·modify일 때 True
 
-ExecutionInput                     옵션 A 참여 실적 추가 기준
-  collect_items: list[str]         예: 쿠폰 발급, 사용, 정산 실적
-  availability: "available" | "negotiating" | "unavailable" | None
-  owner: str                       담당자 (빈 값 허용 → 추가 확정 필요)
-  cycle: str                       확인 주기 (빈 값 허용 → 추가 확정 필요)
+ExecutionInput (frozen)            실행 조건이 있는 대안(R07·R03·R04의 A) 기준
+  collect_items: tuple[str]        필수 1개 이상
+  availability: Availability | None
+  owner: str                       빈 값 허용 → 추가 확정 필요
+  cycle: str                       빈 값 허용 → 추가 확정 필요
+  pending_labels()                 비었거나 확보 가능이 아닌 항목 이름
 
 ChoiceSet
-  by_question: dict[question_key, Choice]
+  choices: dict[question_key, Choice]
+  executions: dict[merge_group, ExecutionInput]    같은 묶음 질문이 공유. 마지막 저장값으로 덮어씀
+  archived: list[ArchivedChoice]                   원안 변경으로 사라진 질문의 선택
+  needs_recheck_keys (속성)
 ```
 
 ### `selection.py`
 
-- `apply_choice(choice_set, outcome, form_values) -> ChoiceSet | ChoiceErrors`
-- `cancel_choice(choice_set, question_key)` : 선택 삭제 → 문서에서도 해당 변경이 사라져야 함 (12장)
-- `pending_from_choices(choice_set) -> list[str]` : 빈 담당자·주기, 확보 불가 자료, 보류 질문 → 추가 확정 필요
+- `apply_choice(choice_set, outcome, single, collect_items) -> ChoiceErrors` : 오류가 없으면(빈 dict) 저장까지 한다
+- `cancel_choice(choice_set, question_key)` : 선택 삭제 → 문서에서도 해당 변경이 사라짐 (12장). 같은 묶음에 대안을 고른 선택이 더 없으면 실행 입력도 지움
+- `pending_from_choices(choice_set, result) -> list[str]` : 보류한 질문, 실행 입력의 빈 담당자·주기·확보 여부·확보 협의 → 추가 확정 필요. 묶음 이름은 `merge_groups` 한글 이름으로 표시
+- `blocking_reasons(result, choice_set) -> list[str]` : 질문(`question`)을 고르지 않았거나 재확인 필요가 남은 경우. 안내(`notice`)는 필수가 아니다
 - 검증
   - `option_id`는 해당 규칙 JSON에 정의된 대안만 허용
   - `modify`는 수정 문장 필수
@@ -62,8 +70,8 @@ ChoiceSet
 
 ### `recheck.py`
 
-- `mark_recheck(choice_set, changed_fields, outcomes) -> ChoiceSet`
-- `plan/changes.py`의 변경 필드와 `ReviewOutcome.related_fields`가 겹치는 선택만 `needs_recheck`
+- `mark_recheck(choice_set, changed_fields)`, `archive_missing(choice_set, result)`, 둘을 묶은 `sync_after_review(choice_set, result, changed_fields)` (4단계 화면이 열릴 때 호출)
+- `plan/changes.py`의 변경 필드와 규칙 JSON의 `related_fields`가 겹치는 선택만 `needs_recheck`
 - 원안 변경 후 규칙을 다시 실행해 **질문 자체가 사라진 경우**: 선택을 보관함으로 옮기고 화면에 "원안 변경으로 더 이상 해당하지 않음" 표시, 문서에는 반영하지 않음
 - `needs_recheck`가 하나라도 있으면 보완 기획안 생성을 막고 확인받는다 (11장: 최종 문서 생성 전에 확인)
 
@@ -75,7 +83,7 @@ ChoiceSet
 
 ## 테스트
 
-`tests/test_choices.py` (예정)
+`tests/test_choices.py` (있음), `tests/test_choice_routes.py` (있음)
 
 | 확인 | 워크플로우 12장 |
 |---|---|

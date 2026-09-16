@@ -12,6 +12,7 @@
 | `input.py` | 있음 | `GET /`, `GET·POST /step/1`, `POST /reset` | `steps/input.html` |
 | `evidence.py` | 있음 | `GET /step/2` (원안 없으면 `/step/1`, 근거 오류면 `error.html` 503) | `steps/evidence.html` |
 | `questions.py` | 있음 | `GET /step/3` (원안 없으면 `/step/1`, 근거 오류면 503) | `steps/questions.html` |
+| `opinions.py` | 있음 | `GET /step/3/opinions` (JSON, AI 참고 의견) | — (`static/js/opinions.js`가 채움) |
 | `choices.py` | 있음 | `GET·POST /step/4`, `POST /step/4/cancel` (저장 후 303, 검증 실패는 422) | `steps/choices.html` |
 | `draft.py` | 있음 | `GET /step/5`, `GET /step/5/document`, `GET /step/5/download`, `GET /step/5/request` | `steps/draft.html`, `steps/document.html`, `steps/request.html` |
 
@@ -25,11 +26,11 @@
 
 - `POST /step/1`의 `action`: `sample`(예시 채우기) / `clear`(모두 지우기) / `submit`(검토 시작)
 - 검증 실패: 422와 오류 표시. 성공: 원안 보관 → `/step/2`
-- 확장 예정: 원안 보관 시 `plan/changes.py`로 변경 필드 계산 → `choices/recheck.py` 호출, `review/engine.py` 실행 결과를 세션에 저장
+- 원안 보관(`state.start_review()`) 시 `plan/changes.py`로 바뀐 항목을 계산한다. 재확인 표시(`choices/recheck.py`)는 4단계 화면을 열 때 한다. 검토 결과는 세션에 저장하지 않고 요청마다 다시 계산한다
 
 ### `evidence.py` — 2단계 근거 확인
 
-- 세션의 원안 지역에 맞는 근거 레코드 조회. 지역 레코드가 없으면 전국 레코드를 **전국 참고로 표시**해 보여준다 (대체 사실을 숨기지 않음)
+- 근거 레코드는 `review/context.select_main_record()`로 **전국 레코드만** 고른다 (입력 행정코드와 근거 `region_key` 연결 규칙 C-2 결정 전). 시도·시군구 기획이면 "선택한 지역의 진단이 아님" 안내를 붙인다
 - 템플릿에 넘길 것
   - 상단 표시: 전국 참고/시도 범위, 기간, `dataset_version`, 합성/실제
   - 월별 표 6행: 금액, 전체 분모 비중, 미상 비중, 미상 제외 비중, 상태
@@ -45,13 +46,19 @@
 - `review_result.outcomes`를 kind별로 표시: 질문 / 안내 / 추가 확정 필요 / 보류
 - 오른쪽 패널: 검토하지 않은 항목 (R06 분석 예시, R02 향후 기능)
 - 각 질문의 근거 ID 칩 → 5단계 근거 추적 또는 2단계로 이동
-- C 단계: `llm/opinions.py` 결과를 "AI 참고 의견"으로 분리 표시
+- `PSM_LLM_PROVIDER`가 `none`이 아니면 "AI 참고 의견" 영역을 두고, 화면이 뜬 뒤 `static/js/opinions.js`가 `/step/3/opinions`에서 받아 채운다 (아래 `opinions.py`)
+
+### `opinions.py` — 3단계 AI 참고 의견 (JSON)
+
+- `GET /step/3/opinions` → `{"state": "off"}`(원안 없음·근거 오류·blocked·설정 none) / `{"state": "ok", "opinions": [{text, rule_ids}], "model", "created_at", "dropped_count"}` / `{"state": "failed", "message": "AI 의견을 불러오지 못했습니다"}`
+- 호출 전 `blocked`·`ok`를 여기서 확인한다 (`llm/`은 `web/`을 부르지 않음)
+- 같은 원안이면 세션 캐시를 쓰고 다시 부르지 않는다. 실패 문구에 서버 주소·예외 내용을 넣지 않는다
 
 ### `choices.py` — 4단계 보완 선택
 
-- 질문마다 원안 유지 / 대안 A~D(규칙 JSON 정의) / 수정 / 보류
+- 질문마다 원안 유지 / 채택 / 수정 / 보류 + 대안(규칙 JSON 정의. R07은 A~D, R01·R03·R04는 A·B). 안내(notice)는 고를 수 있지만 필수가 아니다
 - 대안 카드: 바뀌는 곳, 필요 자료, 운영 부담
-- 옵션 A 선택 시 실행 조건 입력칸: 수집자료, 확보 여부, 담당자, 주기 (빈 값 → "추가 확정 필요" 안내)
+- R07·R03·R04의 대안 A 선택 시 실행 조건 입력칸: 수집자료(필수), 확보 여부, 담당자, 주기 (빈 값 → "추가 확정 필요"). 같은 묶음 질문끼리 입력을 공유하며 화면이 기존 값을 채워 보낸다
 - `POST /step/4`: `web/forms.py` → `choices/selection.py` 검증 → 세션 저장
 - `POST /step/4/cancel`: 해당 질문 선택 취소
 - `needs_recheck` 선택은 상단에 모아 "원안 변경으로 재확인 필요" 표시
@@ -59,8 +66,8 @@
 
 ### `draft.py` — 5단계 보완 기획안
 
-- `GET /step/5`: 원안 ↔ 보완안 비교 화면 (변경 N건 · 추가 확정 필요 N건 · 원안 유지 N개), 근거 추적 패널
-- `GET /step/5/document`: 전체 문서 보기 (Markdown을 HTML로 보기 좋게, 또는 `<pre>`)
+- `GET /step/5`: 보완 기획안 화면 (요약 "변경 N건 · 추가 확정 필요 N건 · 원안 유지 N개 장", 장별 문장 목록과 변경·추가 표시, 추가 확정 필요 목록, 변경 전후 표, 근거 추적 패널, [결과 저장]·[PDF로 저장]·[전체 문서 보기])
+- `GET /step/5/document`: 전체 문서 보기 (저장될 Markdown 원문을 `<pre>`로)
 - `GET /step/5/download`: `document/render.py` 결과를 `text/markdown; charset=utf-8`로 응답, `Content-Disposition`에 `document/filename.py` 파일명 (RFC 5987 `filename*=UTF-8''` 인코딩으로 한글 파일명)
   - 화면의 [결과 저장]은 `static/js/save.js`가 이 주소를 받아 저장 위치 선택 창을 연다
 - `GET /step/5/request`: 옵션 D 선택 시 정밀 분석 요청서 초안. 선택하지 않았으면 `/step/5`로 되돌린다
@@ -75,7 +82,7 @@
 
 ## 테스트
 
-`tests/test_routes.py`에 단계별로 추가
+단계별 파일로 나눴다: `test_routes.py`(1단계·잠금), `test_evidence_routes.py`, `test_question_routes.py`, `test_opinion_routes.py`, `test_choice_routes.py`, `test_draft_routes.py`
 - 단계 잠금 (원안 없이 2~5단계 → 1단계로)
 - 2단계에 "전국 참고"와 "시연용 합성" 표시
 - 4단계 미선택 상태에서 5단계 차단

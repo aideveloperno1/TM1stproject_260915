@@ -18,7 +18,7 @@
 | `models.py` | 있음 | 입력 데이터 형태와 예시 기획 |
 | `validation.py` | 있음 | 필수 항목 오류, 추가 확정 필요 항목 |
 | `regions.py` | 있음 | 시도·시군구 목록 조회, 지역 표시 이름 |
-| `changes.py` | 예정 (9/17~18) | 원안 변경 비교 → 재확인이 필요한 항목 판단 |
+| `changes.py` | 있음 | 원안 변경 비교 → 재확인이 필요한 항목 판단 |
 
 ## 파일별 상세
 
@@ -35,7 +35,7 @@
 
 - `validate_plan(plan) -> ValidationResult(errors, pending)`
 - errors 키: `name, goals, goal_other, target, region, period, budget, metrics, metric_other, indicator_use`
-- pending: 비어 있는 선택 항목 → 보완 기획안 "추가 확정 필요"로 넘어갈 이름 (예산 미입력/미정, 쿠폰 사용처, 자료 확보 상태, 성과 자료 확보)
+- pending: 비어 있는 선택 항목 → 보완 기획안 "추가 확정 필요"로 넘어갈 이름 (`예산 (미입력)`, `예산 (미정)`, `쿠폰 사용처`, `자료 확보 상태`, `성과 자료 확보`)
 - 검증: 목록에 없는 지역 코드, 날짜 형식, 종료일 < 시작일, 예산 비정수
 - 추정·보정하지 않는다. 예: 잘못된 예산 글자를 0으로 바꾸지 않는다
 
@@ -45,15 +45,14 @@
 - 자료: `resources/regions.json` (`scripts/build_regions.py`로 생성)
 - 이 목록은 **입력 선택용**이다. 카드 근거의 지역 범위(`region_key`)와 같은 뜻이 아니다. 근거의 지역 적용 여부는 `evidence/`·`review/`가 판단한다
 
-### `changes.py` (예정)
+### `changes.py` (있음)
 
 원안을 바꿔 다시 제출했을 때 이후 단계 선택 중 무엇을 다시 확인해야 하는지 계산한다 (워크플로우 S05, 11장).
 
-- `diff_plan(before, after) -> set[ChangedField]`
-- 재확인 트리거: 목표, 지역, 성과지표, 지표 용도, 대상, 기간 (워크플로우 11장: 목표·지역·지표 변경 시 영향받는 선택 재확인)
-- 트리거가 아닌 변경 (예: 사업명 오타 수정)은 선택을 유지한다
-- 결과는 `choices/`가 받아 해당 규칙의 선택을 "재확인 필요"로 바꾼다
-- 현재 `web/session.py`의 `review_restarted` 플래그는 전체 변경 여부만 본다 → `changes.py` 구현 후 항목 단위로 대체
+- `diff_plan(before, after) -> frozenset[str]`: 바뀐 항목 이름. 첫 검토(원안 없음)면 빈 집합
+- 비교 항목(`COMPARERS`): `name`, `goals`, `metrics`, `indicator_use`, `target`, `region`, `period`, `budget`, `usage_place`, `data_status`, `fixed_conditions`
+- 이름은 규칙 JSON의 `related_fields`와 같다. `choices/recheck.py`가 **바뀐 항목과 `related_fields`가 겹치는 규칙의 선택만** "재확인 필요"로 바꾼다. 겹치지 않는 변경(예: 사업명 수정)은 선택을 유지한다
+- `web/session.py`의 `review_restarted`는 바뀐 항목이 하나라도 있는지(`changed_fields`)로 판단한다
 
 ## 의존 관계
 
@@ -64,4 +63,4 @@
 ## 테스트
 
 - `tests/test_plan_validation.py` (있음): 필수 7개, 예산 3상태 구분, 잘못된 예산, pending, 기타 설명, 목록 밖 선택값·지역, 기간 역전
-- `tests/test_plan_changes.py` (예정): 트리거 필드 변경 시에만 재확인 대상 반환
+- `tests/test_plan_changes.py` (있음): 바뀐 항목만 반환, 첫 검토는 빈 집합

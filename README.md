@@ -27,10 +27,11 @@ uv run --env-file .env policy-signal-map
 | 환경변수 | 기본값 | 의미 |
 |---|---|---|
 | `PSM_EVIDENCE_PATH` | 합성 파일 `resources/evidence/review_evidence_demo_v1.json` | 분석 근거 파일. 실제 파일은 `private/`에만 둔다 |
-| `PSM_LLM_PROVIDER` | `none` | `none` / `cloud` / `local` (C 단계) |
-| `PSM_LLM_BASE_URL`, `PSM_LLM_MODEL`, `PSM_LLM_API_KEY` | 없음 | LLM 연결 정보 (C 단계) |
+| `PSM_LLM_PROVIDER` | `none` | AI 참고 의견. `none` / `local`(Ollama 등 로컬 LLM) / `cloud`(설정만 있고 호출 코드 없음) |
+| `PSM_LLM_BASE_URL`, `PSM_LLM_MODEL`, `PSM_LLM_API_KEY` | 없음 | LLM 연결 정보 (local은 주소·모델, cloud는 모델·키 필수) |
+| `PSM_LLM_TIMEOUT_S` | `20` | LLM 응답을 기다릴 초 |
 
-실제 근거 파일과 `cloud`를 함께 설정하면 시작 시 오류로 멈춘다.
+실제 근거 파일과 `cloud`를 함께 설정하면 `uv run policy-signal-map`은 시작하지 않는다 (uvicorn을 직접 실행하면 근거 오류 화면).
 
 - 근거 파일은 서버가 처음 필요할 때 한 번 읽어 보관한다. **파일을 바꾸면 서버를 다시 시작한다** (`--reload`는 코드 변경에만 반응).
 - 화면 상단 칩에 불러온 파일의 종류와 버전이 표시된다 (`시연용 합성 수치 · demo-001`). 파일에 문제가 있으면 `근거 파일 오류`로 바뀌고, 2단계부터 오류 화면이 나온다.
@@ -42,7 +43,7 @@ uv run --env-file .env policy-signal-map
 
 ```
 web → document → choices → review → evidence, plan
-llm → review 결과만 사용 (evidence 직접 사용 금지)
+llm → review 결과·plan·labels·config만 사용 (evidence·web 직접 사용 금지)
 ```
 
 **모든 폴더에 `README.md`가 있다.** 폴더의 역할, 만들 파일(있음/예정), 파일별 상세, 지켜야 할 원칙, 테스트를 적어 두었다. 새 파일을 만들기 전에 해당 폴더 README를 먼저 보고, 구현하면 표의 상태를 갱신한다.
@@ -55,7 +56,7 @@ llm → review 결과만 사용 (evidence 직접 사용 금지)
 | `  review/` | S02 검토 규칙 실행 | [README](src/policy_signal_map/review/README.md) |
 | `  choices/` | S03 보완 선택·실행 조건·재확인 | [README](src/policy_signal_map/choices/README.md) |
 | `  document/` | S04·S05 보완 기획안 Markdown | [README](src/policy_signal_map/document/README.md) |
-| `  llm/` | C 단계 AI 참고 의견 | [README](src/policy_signal_map/llm/README.md) |
+| `  llm/` | AI 참고 의견 (로컬 LLM) | [README](src/policy_signal_map/llm/README.md) |
 | `  web/` | 세션·폼·표시 형식 | [README](src/policy_signal_map/web/README.md) |
 | `    routes/` | 단계별 라우트 | [README](src/policy_signal_map/web/routes/README.md) |
 | `    templates/` (`steps/`, `partials/`) | Jinja2 화면 | [README](src/policy_signal_map/web/templates/README.md) |

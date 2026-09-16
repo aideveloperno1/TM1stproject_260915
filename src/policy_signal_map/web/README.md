@@ -24,9 +24,9 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 | 파일 | 상태 | 내용 |
 |---|---|---|
 | `__init__.py` | 있음 | 비어 있음 |
-| `session.py` | 있음 (확장 예정) | 세션별 작업 상태 |
-| `forms.py` | 있음 (확장 예정) | 폼 값 해석 |
-| `labels.py` | 있음 | 입력 선택지 문구 |
+| `session.py` | 있음 | 세션별 작업 상태, AI 의견 캐시 |
+| `forms.py` | 있음 | 폼 값 해석 (기획 입력, 보완 선택) |
+| ~~`labels.py`~~ | 루트 `labels.py`로 이동 | 보완 기획안 문서도 쓰도록 웹 의존 없는 위치에 둠 |
 | `templating.py` | 있음 | 템플릿 객체, 표시 형식 필터 등록, **`render()`**(모든 화면 공통), 쿠키·리다이렉트 |
 | `evidence_state.py` | 있음 | 근거 파일 상태를 한 번 읽어 보관 (`get_evidence_state`), 상단 칩 문구, 실제 자료 + 클라우드 차단 |
 | `dependencies.py` | 있음 | 라우트 공통 의존성: `session_dep`, `evidence_state_dep` |
@@ -35,23 +35,25 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 
 ## 파일별 상세
 
-### `session.py` (있음 → 확장)
+### `session.py` (있음)
 
-- `WorkState`: `plan`, `original`, `changed_fields`(`plan/changes.py` 결과), `choices`(`ChoiceSet`), `review_restarted`(= 바뀐 항목이 있는지)
+- `WorkState`: `plan`, `original`, `changed_fields`(`plan/changes.py` 결과), `choices`(`ChoiceSet`), `opinions`·`opinions_for`(AI 의견과 그것을 만든 원안 스냅샷), `review_restarted`(= 바뀐 항목이 있는지)
+- `start_review()`: 원안 보관, 바뀐 항목 계산, AI 의견 캐시 비움. `cached_opinions()`·`remember_opinions()`: 원안이 같을 때만 캐시 사용
+- 쿠키 `psm_session` (httponly, samesite=lax). 여러 프로세스로 띄우면 세션이 공유되지 않는다
 - 검토 결과는 저장하지 않고 요청마다 다시 계산한다 (같은 입력이면 같은 결과)
 - `SessionStore`: 메모리 dict + 락. 서버 재시작 시 초기화
 - 공개 배포 호스팅 결정(checks.md 미정)에 따라 이 파일만 교체할 수 있게 `get_or_create`·`reset` 인터페이스를 유지한다
-- 오래된 세션 정리: 마지막 접근 후 2시간 지난 상태 삭제 (공개 배포 메모리 보호)
+- 오래된 세션 정리: **아직 구현하지 않았다.** 공개 배포를 하게 되면 필요하다 (`작업진행.md` 7-2)
 
-### `forms.py` (있음 → 확장)
+### `forms.py` (있음)
 
-- 현재 `parse_plan_form`
-- 추가: `parse_choice_form(form, outcome) -> 입력값` — 결정, 옵션, 수정 문장, 실행 조건. 검증은 `choices/selection.py`
+- `parse_plan_form(single, multi) -> PlanInput`
+- `parse_choice_form(form) -> (단일 값 dict, 수집 자료 목록)` — 수집 자료는 줄바꿈·쉼표로 나눈다. 검증은 `choices/selection.py`
 - 원칙: 목록에 없는 값은 버리고, 숫자로 읽지 못한 값은 원문을 남겨 오류로 보여준다
 
-### `labels.py` (있음)
+### 라벨 (`../labels.py`)
 
-입력 선택지 문구와 단계 이름. 규칙 질문·대안 문구는 여기 두지 않는다 (`resources/rules/`).
+입력 선택지 문구·단계 이름·문서용 결정 표기. 규칙 질문·대안 문구는 여기 두지 않는다 (`resources/rules/`).
 
 ### 표시 형식 필터 (`../formatting.py`)
 
@@ -85,17 +87,16 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 - `session_dep` : 쿠키 → `(session_id, WorkState)`
 - `evidence_state_dep` : `get_evidence_state()`. 테스트는 `app.dependency_overrides`로 교체 (`tests/conftest.py`)
 - 단계 잠금은 각 라우트에서 명시적으로 확인한다
-  - 2·3단계: `original` 있음
-  - 4단계: `review_result` 있음
-  - 5단계: 미선택·재확인 필요 질문이 없음 → 아니면 4단계로 돌려보내고 이유 표시
+  - 2~5단계: `original` 있음 (없으면 `/step/1`), 근거 파일 정상 (아니면 `error.html` 503)
+  - 5단계: 고르지 않은 질문·재확인 필요가 없음 → 아니면 `/step/4`로 (이유는 4단계 화면에 표시)
 
 ## 의존 관계
 
-- 가져다 쓰는 곳: 모든 로직 폴더, `llm/opinions.py`(C 단계)
+- 가져다 쓰는 곳: 모든 로직 폴더, `llm/` (`routes/opinions.py`, `session.py`)
 - 이 폴더를 쓰는 곳: `app.py`만
 - 원칙: 템플릿에 넘기기 전 계산은 로직 폴더 함수로 끝내고, 템플릿은 표시만 한다
 
 ## 테스트
 
-- `tests/test_routes.py` (있음, 단계별로 확장)
-- `tests/test_formatters.py` (예정): 0.01%p 미만, None 표시, 억원 변환
+- 화면: `test_routes.py`(1단계), `test_evidence_routes.py`, `test_question_routes.py`, `test_opinion_routes.py`, `test_choice_routes.py`, `test_draft_routes.py`
+- 표시·상태: `test_formatters.py`(0.01 미만, None 표시, 억원 변환), `test_evidence_view.py`, `test_evidence_state.py`, `test_top_badge.py`
