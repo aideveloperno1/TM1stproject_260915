@@ -30,7 +30,7 @@ uv run --env-file .env policy-signal-map
 | `PSM_LLM_PROVIDER` | `none` | AI 참고 의견. `none` / `local`(Ollama 등 로컬 LLM) / `cloud`(설정만 있고 호출 코드 없음) |
 | `PSM_LLM_BASE_URL`, `PSM_LLM_MODEL`, `PSM_LLM_API_KEY` | 없음 | LLM 연결 정보 (local은 주소·모델, cloud는 모델·키 필수) |
 | `PSM_LLM_MODELS` | 없음 | 담당자가 3단계에서 고를 모델 목록(쉼표 구분). 비우면 `PSM_LLM_MODEL` 하나. `PSM_LLM_MODEL`을 비우면 목록의 첫 모델이 기본 |
-| `PSM_LLM_TIMEOUT_S` | `60` | LLM 응답을 기다릴 초. 모델을 바꾼 직후 첫 응답은 모델을 메모리에 올리느라 오래 걸린다 (기본값 위치: `config.py` `DEFAULT_LLM_TIMEOUT_S`) |
+| `PSM_LLM_TIMEOUT_S` | `120` | LLM 응답을 기다릴 초. 모델을 바꾼 직후 첫 응답은 모델을 메모리에 올리느라 오래 걸린다 (기본값 위치: `config.py` `DEFAULT_LLM_TIMEOUT_S`) |
 
 실제 근거 파일과 `cloud`를 함께 설정하면 `uv run policy-signal-map`은 시작하지 않는다 (uvicorn을 직접 실행하면 근거 오류 화면).
 

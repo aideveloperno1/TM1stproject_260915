@@ -60,7 +60,7 @@ def get_provider(settings, model=None) -> LLMProvider | None     PSM_LLM_PROVIDE
 ### `local.py`
 
 - 제공자·모델 이름은 설정값. 코드에 특정 모델을 고정하지 않는다
-- 표준 라이브러리 `urllib.request`로 `{PSM_LLM_BASE_URL}/chat/completions`에 POST (Ollama는 `http://127.0.0.1:11434/v1`). `temperature 0.2`, `stream false`, `reasoning_effort "none"`, 타임아웃은 `PSM_LLM_TIMEOUT_S`(기본 60초 — 바꾸는 방법은 `config.py`의 `DEFAULT_LLM_TIMEOUT_S` 주석), 재시도 없음
+- 표준 라이브러리 `urllib.request`로 `{PSM_LLM_BASE_URL}/chat/completions`에 POST (Ollama는 `http://127.0.0.1:11434/v1`). `temperature 0.2`, `stream false`, `reasoning_effort "none"`, 타임아웃은 `PSM_LLM_TIMEOUT_S`(기본 120초 — 바꾸는 방법은 `config.py`의 `DEFAULT_LLM_TIMEOUT_S` 주석), 재시도 없음
 - `REASONING_EFFORT = "none"`: 생각 과정 출력을 끈다. C-0에서 gemma4가 기본 설정으로는 응답 한도를 생각 과정에 모두 써서 본문이 비었다. 다른 서버가 이 필드를 거부하면 `None`으로 바꾼다
 - `list_models(base_url)`: `{base_url}/models`로 받아 둔 모델 이름(2초). 실패하면 None("모름" — 없다고 단정하지 않음). `is_installed(model, installed)`는 태그 없는 이름을 `:latest`와 같게 본다
 - 실행 의존성을 늘리지 않으려고 HTTP 라이브러리를 쓰지 않았다
