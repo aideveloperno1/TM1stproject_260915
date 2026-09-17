@@ -69,3 +69,27 @@ def test_real_badge(tmp_path: Path):
     state = load_evidence_state({"PSM_EVIDENCE_PATH": str(path)})
     assert state.ok and state.is_real
     assert state.badge == "실제 분석 자료 · fixture-amount_up_share_down · 내부 검증용"
+
+
+def test_unknown_data_kind_is_treated_as_real_even_when_file_is_rejected(tmp_path: Path):
+    # 폴더·이름에 실제 자료 표시가 없고, data_kind가 약속과 달라 검증에 실패하는 파일
+    data = base_data()
+    data["records"][0]["data_kind"] = "actual_internal"
+    path = tmp_path / "review_evidence.json"
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+    state = load_evidence_state({"PSM_EVIDENCE_PATH": str(path)})
+    assert not state.ok and state.is_real
+
+    blocked = load_evidence_state({"PSM_EVIDENCE_PATH": str(path), **CLOUD})
+    assert blocked.blocked
+    assert any("클라우드 LLM" in message for message in blocked.errors)
+
+
+def test_rejected_synthetic_file_is_not_real(tmp_path: Path):
+    data = base_data()
+    data["records"][0]["months"][0]["month"] = "202601"
+    path = tmp_path / "review_evidence.json"
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    state = load_evidence_state({"PSM_EVIDENCE_PATH": str(path)})
+    assert not state.ok and not state.is_real

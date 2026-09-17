@@ -82,7 +82,7 @@ MonthValue
 
 - `load_evidence(path) -> LoadResult(file, warnings, source_path)`: 파일 읽기(UTF-8, BOM 허용, NaN·Infinity 거부) → `parse_evidence`. 실패 시 `EvidenceError(messages, path)`
 - `find_record(file, geographic_scope, region_key)`: 요청한 범위가 없으면 None. **전국 자료로 자동 대체하지 않는다** (9-3장). 입력 화면 행정코드와 `region_key`의 연결 규칙은 2-3 전에 정한다
-- `has_real_records(file)`, `is_real_evidence(path, file)`: 레코드가 `real`이거나 **경로에 `private` 폴더·이름에 `_real_`이 있으면** 실제 자료로 본다. `config.check_llm_data_combination`에 넘긴다
+- `has_real_records(file)`, `is_real_evidence(path, file)`: **경로에 `private` 폴더·이름에 `_real_`이 있거나**, 레코드의 `data_kind`가 `synthetic`이 아니면 실제 자료로 본다. 파일이 검증에 실패했으면 `raw_marks_real(path)`가 원문의 `data_kind`를 찾아 같은 기준으로 본다(예: `actual_internal` — 2026-09-17 임시본 점검에서 알아보지 못하던 경우). `config.check_llm_data_combination`에 넘긴다
 - 파일 경로는 `config.py`에서 받는다. 이 모듈은 캐시하지 않으며, 앱 시작 시 한 번 읽어 보관하는 것은 web 계층(2-1)의 몫이다
 
 ### `compare.py`

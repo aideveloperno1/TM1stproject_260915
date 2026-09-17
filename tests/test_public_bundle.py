@@ -30,12 +30,20 @@ def test_tracked_files_have_no_violations():
 
 def test_detects_real_marker(tmp_path: Path):
     write(tmp_path, "data/result.json", {"records": [{"data_kind": "real"}]})
-    assert reasons(tmp_path, ["data/result.json"]) == ["data/result.json: 실제 자료 표시(data_kind: real)가 있는 파일"]
+    assert reasons(tmp_path, ["data/result.json"]) == ["data/result.json: 실제 자료 표시(data_kind가 synthetic이 아님)가 있는 파일"]
 
 
 def test_detects_real_marker_in_broken_json(tmp_path: Path):
     write(tmp_path, "broken.json", '{"data_kind": "real", ')
     assert "실제 자료 표시" in reasons(tmp_path, ["broken.json"])[0]
+
+
+def test_detects_other_non_synthetic_kind(tmp_path: Path):
+    # 약속과 다른 이름을 적어도 실제 자료 표시로 본다 (2026-09-17 임시본이 "actual_internal"이었음)
+    write(tmp_path, "a.json", {"records": [{"data_kind": "actual_internal"}]})
+    write(tmp_path, "b.json", '{"data_kind": "REAL", ')
+    write(tmp_path, "c.json", {"records": [{"data_kind": "synthetic"}]})
+    assert [r.split(":")[0] for r in reasons(tmp_path, ["a.json", "b.json", "c.json"])] == ["a.json", "b.json"]
 
 
 def test_allows_registered_fixture(tmp_path: Path):
@@ -74,4 +82,4 @@ def test_korean_file_name_is_scanned(tmp_path: Path):
 
     files = tracked_files(tmp_path)
     assert files == ["외국인분석결과.json"]
-    assert reasons(tmp_path, files) == ["외국인분석결과.json: 실제 자료 표시(data_kind: real)가 있는 파일"]
+    assert reasons(tmp_path, files) == ["외국인분석결과.json: 실제 자료 표시(data_kind가 synthetic이 아님)가 있는 파일"]

@@ -69,13 +69,46 @@ def find_record(file: EvidenceFile, geographic_scope: str, region_key: str) -> E
     return None
 
 
+SYNTHETIC_KIND = "synthetic"
+
+
 def has_real_records(file: EvidenceFile) -> bool:
-    return any(record.data_kind == "real" for record in file.records)
+    return any(record.data_kind != SYNTHETIC_KIND for record in file.records)
+
+
+def _data_kinds(data: object) -> set[str]:
+    """JSON 안의 모든 data_kind 글자 값. 레코드 구조가 틀려도 찾는다."""
+    if isinstance(data, dict):
+        found = {data["data_kind"]} if isinstance(data.get("data_kind"), str) else set()
+        for value in data.values():
+            found |= _data_kinds(value)
+        return found
+    if isinstance(data, list):
+        return set().union(*(_data_kinds(item) for item in data)) if data else set()
+    return set()
+
+
+def raw_marks_real(path: Path) -> bool:
+    """검증에 실패한 파일도 원문의 data_kind로 실제 자료인지 본다.
+
+    synthetic이 아니면 모두 실제로 본다. 분석 담당이 "actual_internal"처럼 약속과 다른 값을 적어
+    검증에 실패하면, 예전에는 경로·이름 조건이 없을 때 실제 자료로 알아보지 못했다 (2026-09-17 임시본 점검).
+    읽을 수 없는 파일은 판단하지 않는다 (경로·이름 조건은 따로 본다).
+    """
+    try:
+        data = json.loads(Path(path).read_bytes().decode("utf-8-sig"))
+    except (OSError, UnicodeDecodeError, ValueError):
+        return False
+    return any(kind != SYNTHETIC_KIND for kind in _data_kinds(data))
 
 
 def is_real_evidence(path: Path, file: EvidenceFile | None) -> bool:
-    """실제 자료로 취급할지. 파일 안 표시가 잘못돼도 차단이 뚫리지 않게 경로·이름도 본다."""
+    """실제 자료로 취급할지. 파일 안 표시가 잘못돼도 차단이 뚫리지 않게 경로·이름·원문도 본다."""
     path = Path(path)
     in_private = any(part.lower() == "private" for part in path.parts)
     real_name = "_real_" in path.name.lower()
-    return in_private or real_name or (file is not None and has_real_records(file))
+    if in_private or real_name:
+        return True
+    if file is not None:
+        return has_real_records(file)
+    return raw_marks_real(path)

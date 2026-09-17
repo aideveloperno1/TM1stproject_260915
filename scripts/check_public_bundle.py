@@ -23,7 +23,8 @@ SYNTHETIC_VERSION_PREFIXES = ("demo-", "fixture-")
 # 원본 카드 자료가 들어 있을 수 있는 형식
 RAW_DATA_SUFFIXES = (".csv", ".xlsx", ".xls", ".parquet")
 
-_REAL_MARKER_RE = re.compile(r'"data_kind"\s*:\s*"real"')
+# synthetic이 아닌 data_kind는 모두 실제 자료 표시로 본다 ("actual_internal" 같은 다른 이름도 잡는다)
+_REAL_MARKER_RE = re.compile(r'"data_kind"\s*:\s*"(?!synthetic")[^"]*"')
 
 
 @dataclass(frozen=True)
@@ -45,7 +46,8 @@ def tracked_files(repo_root: Path = REPO_ROOT) -> list[str]:
 
 def _has_real_kind(data: Any) -> bool:
     if isinstance(data, dict):
-        if data.get("data_kind") == "real":
+        kind = data.get("data_kind")
+        if isinstance(kind, str) and kind != "synthetic":
             return True
         return any(_has_real_kind(value) for value in data.values())
     if isinstance(data, list):
@@ -82,7 +84,7 @@ def find_violations(repo_root: Path, files: Iterable[str]) -> list[Violation]:
             data = None
 
         if rel not in ALLOWED_REAL_MARKERS and (_REAL_MARKER_RE.search(text) or _has_real_kind(data)):
-            violations.append(Violation(rel, "실제 자료 표시(data_kind: real)가 있는 파일"))
+            violations.append(Violation(rel, "실제 자료 표시(data_kind가 synthetic이 아님)가 있는 파일"))
         if isinstance(data, dict) and "schema_version" in data and "records" in data:
             version = data.get("dataset_version")
             if not (isinstance(version, str) and version.startswith(SYNTHETIC_VERSION_PREFIXES)):

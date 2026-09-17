@@ -50,7 +50,7 @@
 
 - 대상: `git -c core.quotepath=false ls-files -z`로 얻은 추적 파일 전체 (한글 경로가 이스케이프되면 파일을 열지 못해 검사가 빠지므로), 열 수 없는 추적 파일은 위반
 - 실패 조건
-  - `.json` 파일 안에 `"data_kind": "real"`이 있음
+  - `.json` 파일 안에 `"data_kind"`가 `"synthetic"`이 아닌 값이 있음 (`"real"`, `"actual_internal"` 등. 9/17부터)
   - 경로에 `private/`가 있음 (README.md 제외)
   - `.env` 파일이 추적됨
   - `dataset_version`이 `demo-`·`fixture-`로 시작하지 않는 근거 파일
