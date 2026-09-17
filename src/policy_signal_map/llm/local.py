@@ -16,6 +16,13 @@ from .base import LLMError, Message
 
 log = logging.getLogger(__name__)
 
+# 모델의 "생각 과정" 출력을 끈다. Ollama의 OpenAI 호환 주소가 받는 값이다.
+# 왜 끄는가 (C-0 측정, 2026-09-17): gemma4:26b-a4b-it-qat는 기본으로 생각 과정을 먼저 쓰느라
+# 응답 한도(prompt.MAX_TOKENS=400)를 모두 써 버려 본문이 비었다(6번 모두). "none"이면 2~3초에 본문이 왔다.
+# 생각 기능이 없는 exaone3.5도 이 값을 보내도 오류 없이 답한다(확인).
+# 다른 서버(LM Studio 등)가 이 필드를 거부하면 None으로 바꾸면 요청에서 빠진다.
+REASONING_EFFORT: str | None = "none"
+
 # 받아 둔 모델 목록을 물을 때 기다릴 시간(초). 3단계 화면을 그리면서 부르므로 짧게 둔다.
 # Ollama가 꺼져 있으면 연결 거부로 바로 돌아오고, 이 시간은 응답이 멈춘 경우에만 쓰인다.
 LIST_MODELS_TIMEOUT_S = 2.0
@@ -56,15 +63,16 @@ class LocalProvider:
         return f"{self.base_url.rstrip('/')}/chat/completions"
 
     def generate(self, messages: list[Message], *, max_tokens: int, timeout_s: float) -> str:
-        body = json.dumps(
-            {
-                "model": self.model,
-                "messages": [{"role": m.role, "content": m.content} for m in messages],
-                "max_tokens": max_tokens,
-                "temperature": 0.2,
-                "stream": False,
-            }
-        ).encode("utf-8")
+        fields: dict[str, object] = {
+            "model": self.model,
+            "messages": [{"role": m.role, "content": m.content} for m in messages],
+            "max_tokens": max_tokens,
+            "temperature": 0.2,
+            "stream": False,
+        }
+        if REASONING_EFFORT is not None:
+            fields["reasoning_effort"] = REASONING_EFFORT
+        body = json.dumps(fields).encode("utf-8")
         request = urllib.request.Request(
             self.endpoint,
             data=body,

@@ -84,6 +84,8 @@ def test_local_call_sends_openai_shape_and_reads_content(monkeypatch: pytest.Mon
     assert sent["body"]["model"] == "exaone"
     assert sent["body"]["messages"] == [{"role": "user", "content": "질문"}]
     assert sent["body"]["stream"] is False
+    # 생각 과정 출력을 끈다 (C-0: gemma4는 켜져 있으면 본문이 비었다)
+    assert sent["body"]["reasoning_effort"] == "none"
 
 
 def test_local_call_failure_becomes_llm_error(monkeypatch: pytest.MonkeyPatch):
@@ -155,3 +157,16 @@ def test_list_models_failure_is_unknown_not_empty(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr("urllib.request.urlopen", refuse)
     assert list_models("http://127.0.0.1:11434/v1") is None
     assert is_installed("a", None) is None
+
+
+def test_reasoning_effort_can_be_left_out(monkeypatch: pytest.MonkeyPatch):
+    sent: dict[str, object] = {}
+
+    def fake_urlopen(request, timeout):
+        sent["body"] = json.loads(request.data.decode("utf-8"))
+        return FakeResponse(json.dumps({"choices": [{"message": {"content": "확인할 점"}}]}).encode())
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    monkeypatch.setattr("policy_signal_map.llm.local.REASONING_EFFORT", None)
+    local_provider().generate([Message("user", "질문")], max_tokens=300, timeout_s=1)
+    assert "reasoning_effort" not in sent["body"]
