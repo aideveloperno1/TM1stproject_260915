@@ -24,7 +24,8 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 | 파일 | 상태 | 내용 |
 |---|---|---|
 | `__init__.py` | 있음 | 비어 있음 |
-| `session.py` | 있음 | 세션별 작업 상태, AI 의견 캐시 |
+| `session.py` | 있음 | 세션별 작업 상태, 고른 AI 모델, 모델별 AI 의견 캐시 |
+| `ai_models.py` | 있음 | 3단계 AI 모델 선택 화면 데이터: 현재 모델, 받아 둔 모델 확인, 선택지 (C-8) |
 | `forms.py` | 있음 | 폼 값 해석 (기획 입력, 보완 선택) |
 | ~~`labels.py`~~ | 루트 `labels.py`로 이동 | 보완 기획안 문서도 쓰도록 웹 의존 없는 위치에 둠 |
 | `templating.py` | 있음 | 템플릿 객체, 표시 형식 필터 등록, **`render()`**(모든 화면 공통), 쿠키·리다이렉트 |
@@ -37,8 +38,8 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 
 ### `session.py` (있음)
 
-- `WorkState`: `plan`, `original`, `changed_fields`(`plan/changes.py` 결과), `choices`(`ChoiceSet`), `opinions`·`opinions_for`(AI 의견과 그것을 만든 원안 스냅샷), `review_restarted`(= 바뀐 항목이 있는지)
-- `start_review()`: 원안 보관, 바뀐 항목 계산, AI 의견 캐시 비움. `cached_opinions()`·`remember_opinions()`: 원안이 같을 때만 캐시 사용
+- `WorkState`: `plan`, `original`, `changed_fields`(`plan/changes.py` 결과), `choices`(`ChoiceSet`), `llm_model`(담당자가 고른 AI 모델, None이면 기본), `opinions`(모델별 AI 의견 dict)·`opinions_for`(그것을 만든 원안 스냅샷), `review_restarted`(= 바뀐 항목이 있는지)
+- `start_review()`: 원안 보관, 바뀐 항목 계산, AI 의견 캐시 비움. `cached_opinions(model)`·`remember_opinions(model, …)`: 원안이 같을 때만 그 모델의 캐시 사용, 원안이 바뀌면 모든 모델 캐시를 비움. 모델 선택은 원안이 바뀌어도 유지
 - 쿠키 `psm_session` (httponly, samesite=lax). 여러 프로세스로 띄우면 세션이 공유되지 않는다
 - 검토 결과는 저장하지 않고 요청마다 다시 계산한다 (같은 입력이면 같은 결과)
 - `SessionStore`: 메모리 dict + 락. 서버 재시작 시 초기화

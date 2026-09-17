@@ -4,7 +4,8 @@
 
 **로컬 LLM만 구현했다** (2026-09-16, [6LLM참고의견계획.md](../../../6LLM참고의견계획.md)).
 카드 자료가 밖으로 나가지 않으므로 최종기획서 8장("외부 LLM에 보내지 않는다")을 고치지 않고 그대로 지킨다.
-남은 것: 실제 로컬 모델로 품질·속도 확인(계획서 C-0), 최종기획서 11장 "조건부 확장"에 한 줄 추가할지 결정(아직 요청하지 않음).
+실제 모델 확인(C-0)은 2026-09-17에 마쳤다(`exaone3.5:7.8b` 4·8비트, `gemma4:26b-a4b-it-qat`). 같은 날 담당자가 3단계에서 모델을 고르는 기능(C-8)을 정식 기능으로 넣었다.
+남은 것: 최종기획서 11장 "조건부 확장"에 한 줄 추가할지 결정(아직 요청하지 않음).
 클라우드는 설정·차단 규칙과 `base.py` 교체 지점만 있고 호출 코드는 없다.
 
 ## 역할
@@ -28,6 +29,7 @@
 | `prompt.py` | 있음 | 규칙 결과 요약 → 요청 문장 (`resources/prompts/opinion.txt`) |
 | `guard.py` | 있음 | 출력 검사 6종 |
 | `opinions.py` | 있음 | 검사 통과 의견 + 모델·생성 시각 |
+| `catalog.py` | 있음 | 모델 표시 이름·설명 (`resources/llm/models.json`), 판정 표현 검사 (C-8) |
 | `cloud.py` | 만들지 않음 | 확장 지점만 `base.py`에 있음. 선택하면 "아직 구현하지 않았습니다" 오류 |
 | `retrieval.py` | 후속 | 공개 운영 문서 검색(RAG). 검수한 원문만 대상 |
 
@@ -46,9 +48,10 @@ class LLMProvider(Protocol):
     name: str
     def generate(self, messages: list[Message], *, max_tokens: int, timeout_s: float) -> str
 
-def get_provider(config) -> LLMProvider | None     PSM_LLM_PROVIDER == "none"이면 None
+def get_provider(settings, model=None) -> LLMProvider | None     PSM_LLM_PROVIDER == "none"이면 None
 ```
 
+- `model`: 담당자가 고른 모델. `settings.llm_models`(=`PSM_LLM_MODELS`) 밖이면 `LLMError` — 화면 요청값으로 PC의 다른 모델을 부르지 못하게 한다. 없으면 기본 모델
 - `get_provider(settings)`: `none` → None, `local` → `LocalProvider`, `cloud` → "아직 구현하지 않았습니다" `LLMError` (**클라우드 확장 지점**: `cloud.py`를 만들어 여기서 돌려준다)
 - `FakeProvider(reply, error)`: 테스트용. 받은 메시지를 `calls`에 기록
 - 실패(시간 초과·연결 오류·응답 형식 오류)는 `LLMError`로 올리고 화면은 "AI 의견을 불러오지 못했습니다"만 표시. 규칙 기반 흐름은 그대로 동작한다
@@ -57,7 +60,9 @@ def get_provider(config) -> LLMProvider | None     PSM_LLM_PROVIDER == "none"이
 ### `local.py`
 
 - 제공자·모델 이름은 설정값. 코드에 특정 모델을 고정하지 않는다
-- 표준 라이브러리 `urllib.request`로 `{PSM_LLM_BASE_URL}/chat/completions`에 POST (Ollama는 `http://127.0.0.1:11434/v1`). `temperature 0.2`, `stream false`, 타임아웃은 `PSM_LLM_TIMEOUT_S`(기본 20초), 재시도 없음
+- 표준 라이브러리 `urllib.request`로 `{PSM_LLM_BASE_URL}/chat/completions`에 POST (Ollama는 `http://127.0.0.1:11434/v1`). `temperature 0.2`, `stream false`, `reasoning_effort "none"`, 타임아웃은 `PSM_LLM_TIMEOUT_S`(기본 60초 — 바꾸는 방법은 `config.py`의 `DEFAULT_LLM_TIMEOUT_S` 주석), 재시도 없음
+- `REASONING_EFFORT = "none"`: 생각 과정 출력을 끈다. C-0에서 gemma4가 기본 설정으로는 응답 한도를 생각 과정에 모두 써서 본문이 비었다. 다른 서버가 이 필드를 거부하면 `None`으로 바꾼다
+- `list_models(base_url)`: `{base_url}/models`로 받아 둔 모델 이름(2초). 실패하면 None("모름" — 없다고 단정하지 않음). `is_installed(model, installed)`는 태그 없는 이름을 `:latest`와 같게 본다
 - 실행 의존성을 늘리지 않으려고 HTTP 라이브러리를 쓰지 않았다
 
 ### `cloud.py` (만들지 않음)
@@ -112,8 +117,9 @@ def get_provider(config) -> LLMProvider | None     PSM_LLM_PROVIDER == "none"이
 
 - `tests/test_llm_guard.py`: 검사 6종, 섞인 출력에서 통과한 줄만 남김, 전부 버려짐, 줄 수 제한
 - `tests/test_llm_prompt.py`: 프롬프트에 근거 수치·`observations`가 없음, 상황 설명 사용, 사용자 입력 길이 제한과 지시 덮어쓰기 문자열
-- `tests/test_llm_provider.py`: 제공자 선택, 클라우드 미구현 오류, 로컬 호출 형식, 실패 문구에 주소 없음, 타임아웃 설정
-- `tests/test_opinion_routes.py`: 설정 none이면 영역 없음, 근거 오류면 호출 안 함, 캐시, 원안 변경 시 다시 호출, 실패해도 3단계 정상
+- `tests/test_llm_provider.py`: 제공자 선택, 목록 밖 모델 거부, 클라우드 미구현 오류, 로컬 호출 형식(`reasoning_effort` 포함·뺄 수 있음), 실패 문구에 주소 없음, 타임아웃 설정, 받아 둔 모델 목록 해석·실패 시 None
+- `tests/test_llm_catalog.py`: 모델 표시 문구 파일, 목록에 없는 모델은 이름 그대로, 중복·빈 값·판정 표현 거부
+- `tests/test_opinion_routes.py`: 설정 none이면 영역 없음, 근거 오류면 호출 안 함, 모델별 캐시, 원안 변경 시 전부 다시 호출, 실패해도 3단계 정상, 모델 선택 칸(2개 이상일 때만)·저장·목록 밖/받아 두지 않은 모델 422
 - `tests/test_review_rules.py`: `llm_context`에 수치·판정 단어 없음, 실행 중 나온 문구 키가 모두 상황 설명을 찾음
 - `tests/test_boundaries.py`: `llm/`이 `evidence/`를 import하지 않음
 - 실제 LLM 호출 없이 가짜 제공자(`FakeProvider`)로 테스트한다

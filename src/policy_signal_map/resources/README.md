@@ -12,6 +12,8 @@
 | `rules/` | 검토 규칙 원본 |
 | `evidence/` | 합성 분석 근거 파일 |
 | `documents/` | 보완 기획안·요청서 Markdown 양식 |
+| `prompts/` | AI 참고 의견 요청 문장 (`opinion.txt`) |
+| `llm/` | AI 모델 표시 이름·설명 (`models.json`). 고를 수 있는 모델 자체는 `.env`의 `PSM_LLM_MODELS`가 정한다 |
 
 ## 만들 파일
 

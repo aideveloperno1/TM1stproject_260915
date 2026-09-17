@@ -7,17 +7,17 @@
 
 ## 만들 파일
 
-개수는 매개변수화한 경우를 포함한 수집 기준이다(2026-09-16, 전체 388개). 바뀌면 `uv run pytest --collect-only -q`로 다시 센다.
+개수는 매개변수화한 경우를 포함한 수집 기준이다(2026-09-17, 전체 413개). 바뀌면 `uv run pytest --collect-only -q`로 다시 센다.
 
 | 파일 | 개수 | 대상 |
 |---|---:|---|
-| `conftest.py` | — | 공통: `PSM_*` 환경변수 제거, 합성 근거 상태로 고정, `use_evidence(path, **env)` 픽스처 |
+| `conftest.py` | — | 공통: `PSM_*` 환경변수 제거, 합성 근거 상태로 고정, `use_evidence(path, **env)` 픽스처, 받아 둔 모델 확인이 실제 Ollama에 닿지 않게 막음 |
 | `helpers.py` | — | 공통: `VALID_FORM`, `parse()` |
 | `evidence_helpers.py` | — | 공통: 경계 사례 경로·목록(`fixture_path`), `base_data()` |
 | `document_helpers.py` | — | 공통: 원안·선택·문서 생성 준비 |
 | `test_plan_validation.py` | 9 | `plan/validation.py` |
 | `test_plan_changes.py` | 7 | `plan/changes.py` |
-| `test_config.py` | 10 | `config.py` |
+| `test_config.py` | 15 | `config.py` (모델 목록 `PSM_LLM_MODELS` 포함) |
 | `test_formatters.py` | 20 | `formatting.py` |
 | `test_evidence_loader.py` | 44 | `evidence/schema.py`, `loader.py`, 경계 사례 생성 일치 |
 | `test_evidence_compare.py` | 24 | `evidence/compare.py` |
@@ -29,7 +29,8 @@
 | `test_document_builder.py` | 19 | `document/builder.py` |
 | `test_document_render.py` | 11 | `document/render.py` |
 | `test_document_filename.py` | 5 | `document/filename.py` |
-| `test_llm_provider.py` | 9 | `llm/base.py`, `llm/local.py`, `PSM_LLM_TIMEOUT_S` |
+| `test_llm_provider.py` | 14 | `llm/base.py`, `llm/local.py`(받아 둔 모델 확인·`reasoning_effort`), `PSM_LLM_TIMEOUT_S` |
+| `test_llm_catalog.py` | 4 | `llm/catalog.py`, `resources/llm/models.json` |
 | `test_llm_prompt.py` | 11 | `llm/prompt.py` |
 | `test_llm_guard.py` | 14 | `llm/guard.py` |
 | `test_evidence_state.py` | 7 | `web/evidence_state.py` |
@@ -38,7 +39,7 @@
 | `test_routes.py` | 10 | 1단계 입력, 단계 잠금, 정적 파일 |
 | `test_evidence_routes.py` | 12 | 2단계 화면 |
 | `test_question_routes.py` | 10 | 3단계 화면 |
-| `test_opinion_routes.py` | 11 | 3단계 AI 참고 의견 주소·캐시 |
+| `test_opinion_routes.py` | 22 | 3단계 AI 참고 의견 주소·모델별 캐시·모델 선택 |
 | `test_choice_routes.py` | 13 | 4단계 화면 |
 | `test_draft_routes.py` | 16 | 5단계 화면·내려받기·PDF 버튼·인쇄 CSS |
 | `test_public_bundle.py` | 8 | `scripts/check_public_bundle.py` |

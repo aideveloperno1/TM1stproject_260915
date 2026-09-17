@@ -11,8 +11,8 @@
 | `__init__.py` | 있음 | — | — |
 | `input.py` | 있음 | `GET /`, `GET·POST /step/1`, `POST /reset` | `steps/input.html` |
 | `evidence.py` | 있음 | `GET /step/2` (원안 없으면 `/step/1`, 근거 오류면 `error.html` 503) | `steps/evidence.html` |
-| `questions.py` | 있음 | `GET /step/3` (원안 없으면 `/step/1`, 근거 오류면 503) | `steps/questions.html` |
-| `opinions.py` | 있음 | `GET /step/3/opinions` (JSON, AI 참고 의견) | — (`static/js/opinions.js`가 채움) |
+| `questions.py` | 있음 | `GET /step/3` (원안 없으면 `/step/1`, 근거 오류면 503), `POST /step/3/ai-model` (AI 모델 선택: 목록 밖·받아 두지 않은 모델 422, 저장 후 303) | `steps/questions.html` |
+| `opinions.py` | 있음 | `GET /step/3/opinions` (JSON, AI 참고 의견. 고른 모델로 호출, `model_label` 포함) | — (`static/js/opinions.js`가 채움) |
 | `choices.py` | 있음 | `GET·POST /step/4`, `POST /step/4/cancel` (저장 후 303, 검증 실패는 422) | `steps/choices.html` |
 | `draft.py` | 있음 | `GET /step/5`, `GET /step/5/document`, `GET /step/5/download`, `GET /step/5/request` | `steps/draft.html`, `steps/document.html`, `steps/request.html` |
 
