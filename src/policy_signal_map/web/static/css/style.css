@@ -1198,6 +1198,18 @@ textarea.input {
   line-height: 1.6;
 }
 
+.ai-model-form {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.ai-model-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
 .ai-opinion .badge-row {
   margin-top: 8px;
 }

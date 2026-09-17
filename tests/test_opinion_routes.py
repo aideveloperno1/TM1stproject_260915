@@ -18,13 +18,13 @@ def local_llm(use_evidence):
     """설정만 local로 바꾼다. 실제 호출은 가짜 제공자가 대신한다."""
 
     def _use(provider: FakeProvider | None = None, **env: str):
-        use_evidence(
-            None,
-            PSM_LLM_PROVIDER="local",
-            PSM_LLM_MODEL="시험모델",
-            PSM_LLM_BASE_URL="http://127.0.0.1:11434/v1",
+        settings = {
+            "PSM_LLM_PROVIDER": "local",
+            "PSM_LLM_MODEL": "시험모델",
+            "PSM_LLM_BASE_URL": "http://127.0.0.1:11434/v1",
             **env,
-        )
+        }
+        use_evidence(None, **settings)
         fake = provider or FakeProvider(reply=CLEAN)
         return fake
 
@@ -206,3 +206,80 @@ def test_model_removed_from_settings_falls_back_to_default(local_llm, monkeypatc
     state_of(client).llm_model = "지워진모델"
     client.get("/step/3/opinions")
     assert asked == ["시험모델"]
+
+
+# ---------------------------------------------------------------- 3단계 모델 선택 (C-8-3)
+
+CATALOG_ENV = {"PSM_LLM_MODELS": "exaone3.5:7.8b,gemma4:26b-a4b-it-qat", "PSM_LLM_MODEL": ""}
+
+
+def test_model_select_appears_only_with_two_or_more_models(local_llm):
+    local_llm()
+    assert 'name="model"' not in reviewed_client().get("/step/3").text
+
+    local_llm(**CATALOG_ENV)
+    html = reviewed_client().get("/step/3").text
+    assert 'action="/step/3/ai-model"' in html
+    # 표시 이름과 설명은 resources/llm/models.json에서
+    assert "EXAONE 3.5 7.8B (4비트)" in html
+    assert "Gemma 4 26B A4B (QAT 4비트)" in html
+    assert "LG AI연구원" in html
+    assert "어떤 모델의 의견도 검토 결과·보완 선택·보완 기획안을 바꾸지 않습니다" in html
+
+
+def test_choosing_a_model_is_saved_and_shown_selected(local_llm):
+    local_llm(**CATALOG_ENV)
+    client = reviewed_client()
+    response = client.post("/step/3/ai-model", data={"model": "gemma4:26b-a4b-it-qat"}, follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/step/3"
+    assert state_of(client).llm_model == "gemma4:26b-a4b-it-qat"
+    html = client.get("/step/3").text
+    assert 'value="gemma4:26b-a4b-it-qat" selected' in html
+    assert "Google의 다국어 모델" in html
+
+
+def test_model_outside_the_list_is_refused(local_llm):
+    local_llm(**CATALOG_ENV)
+    client = reviewed_client()
+    response = client.post("/step/3/ai-model", data={"model": "qwen2.5:7b"})
+    assert response.status_code == 422
+    assert "선택할 수 없는 모델입니다" in response.text
+    assert state_of(client).llm_model is None
+
+
+def test_model_choice_is_refused_when_ai_is_off():
+    client = reviewed_client()
+    response = client.post("/step/3/ai-model", data={"model": "exaone3.5:7.8b"})
+    assert response.status_code == 422
+
+
+def test_model_choice_before_review_goes_to_step_one(local_llm):
+    local_llm(**CATALOG_ENV)
+    response = TestClient(app).post("/step/3/ai-model", data={"model": "exaone3.5:7.8b"}, follow_redirects=False)
+    assert response.headers["location"] == "/step/1"
+
+
+def test_models_not_installed_are_marked_and_refused(local_llm, monkeypatch):
+    local_llm(**CATALOG_ENV)
+    monkeypatch.setattr(
+        "policy_signal_map.llm.local.list_models", lambda *args, **kwargs: frozenset({"exaone3.5:7.8b"})
+    )
+    client = reviewed_client()
+    html = client.get("/step/3").text
+    assert "Gemma 4 26B A4B (QAT 4비트) (받아 두지 않음)" in html
+    assert 'value="gemma4:26b-a4b-it-qat" disabled' in html
+
+    response = client.post("/step/3/ai-model", data={"model": "gemma4:26b-a4b-it-qat"})
+    assert response.status_code == 422
+    assert "받아 두지 않은 모델입니다" in response.text
+
+
+def test_unknown_install_state_does_not_block_choice(local_llm):
+    # conftest가 모델 목록 확인을 None(확인 못 함)으로 둔다: 선택은 막지 않는다
+    local_llm(**CATALOG_ENV)
+    client = reviewed_client()
+    assert "받아 두지 않음" not in client.get("/step/3").text
+    response = client.post("/step/3/ai-model", data={"model": "gemma4:26b-a4b-it-qat"}, follow_redirects=False)
+    assert response.status_code == 303

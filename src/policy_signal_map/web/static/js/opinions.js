@@ -40,8 +40,11 @@
       return response.json();
     })
     .then(function (data) {
-      if (data.state === "off") return; // 설정으로 꺼 둔 경우: 영역을 열지 않는다
-      box.hidden = false;
+      // 설정으로 꺼 둔 경우: 영역을 숨긴다. 켜져 있으면 모델 선택 칸을 기다리는 동안에도 쓸 수 있게 처음부터 보인다
+      if (data.state === "off") {
+        box.hidden = true;
+        return;
+      }
 
       if (data.state !== "ok") {
         show("AI 의견을 불러오지 못했습니다.");
@@ -53,10 +56,9 @@
       }
       data.opinions.forEach(addOpinion);
       message.hidden = true;
-      source.textContent = (data.model || "로컬 모델") + " · " + data.created_at;
+      source.textContent = (data.model_label || data.model || "로컬 모델") + " · " + data.created_at;
     })
     .catch(function () {
-      box.hidden = false;
       show("AI 의견을 불러오지 못했습니다.");
     });
 })();
