@@ -76,14 +76,14 @@
 | 비교 A / 비교 B | 별도 결과로 계산·표시 | 통과 9/16: 계산 + 구간 표의 별도 열 |
 | 이전 F=0·변화 없음·월 누락 | 증감률 null·반대 아님·비교 보류 | 통과 9/16 (`test_evidence_compare`, 화면 "계산 불가"·"보류 — 사유") |
 | 아주 작은 방향 차이 | 중립적 표시, 강한 경고·자동 수정 없음 | 통과 9/16: 화면 "0.01%p 미만 (증가)", 경고 클래스 없음 (`test_step_two_shows_tiny_change_label`, `test_step_two_has_no_red_warning_classes`) |
-| 방향이 같은 두 기간 | 반대 방향 예시 문구를 복사하지 않음 | 2단계 요약 문장 통과 9/16 (`test_same_direction_sentence_has_no_opposite_wording`) · 3단계 질문 문구는 3번에서 |
-| 전국 자료 + 특정 지역 기획 | 전국 참고 표시 | 2단계 통과 9/16 (범위 칩·지역 안내 문구, `test_region_note_for_sigungu_plan`) · 3·5단계는 해당 작업에서 |
+| 방향이 같은 두 기간 | 반대 방향 예시 문구를 복사하지 않음 | 2단계 요약 문장 통과 9/16 (`test_same_direction_sentence_has_no_opposite_wording`) · 3단계 "왜 묻나요" 문구 통과 9/17 (`test_same_direction_does_not_reuse_opposite_wording`) |
+| 전국 자료 + 특정 지역 기획 | 전국 참고 표시 | 2단계 통과 9/16 (범위 칩·지역 안내 문구, `test_region_note_for_sigungu_plan`) · 3단계 통과 9/17 (질문 카드 범위·지역 안내가 2단계와 같음, `test_region_note_and_scope_label_match_evidence_screen`) · 5단계 통과 9/17 (근거 추적에 "전국 참고 — 특정 지역의 진단이 아님", `test_changed_line_carries_evidence_chip_and_trace`) |
 | 검증 시도 자료 + 시군구 기획 | 넓은 범위 참고 표시, R02 자동 활성화 없음 | R02는 항상 "검토하지 않음"으로 표시 9/16 (`test_r06_and_r02_are_not_reviewed`) · 시도 자료 연결은 C-2 결정 후 |
 | 참고용 지표 | 불필요한 직접 성과 오류 없음 | 통과 9/16: 지표 용도가 참고 현황이면 안내만 표시하고 질문 0건, 판정 단어 없음 (`test_reference_indicator_use_is_notice_without_error_wording`) |
-| 자료 수집 미정 | 추가 확정 필요 표시 | 통과 9/16: 빈 담당자·주기가 문서에 `[추가 확정 필요]`로 남고 8장에 모임 (`test_empty_owner_and_cycle_become_pending_marks`, `test_plan_pending_items_are_listed_once`) |
+| 자료 수집 미정 | 추가 확정 필요 표시 | 통과 9/16: 빈 담당자·주기가 문서에 `[추가 확정 필요]`로 남고 8장에 모임 (`test_empty_owner_and_cycle_become_pending_marks`, `test_plan_pending_items_are_listed_once`) · 9/17 6-5b: 쓰지 않게 된 실행 조건은 8장에 남지 않음 — 질문이 사라짐·원안 유지로 변경·대안 A→B (`test_disappeared_question_leaves_no_execution_pending`, `test_keep_original_after_adopt_leaves_no_execution_pending`, `test_switching_a_to_b_leaves_no_execution_pending`), 문장에서 쓰는 주기는 유지 (`test_r04_b_keeps_entered_cycle_after_r07_is_kept_original`) |
 | 목표 유지·대안 취소 | 미채택 내용이 최종 문서에 남지 않음 | 통과 9/16 (`test_cancelled_choice_leaves_no_trace`, `test_without_choices_document_keeps_original_and_has_no_changes`) |
-| 목표·지역 변경 | 관련 선택과 문서 재검토 | 통과 9/16: 재확인 필요가 남으면 문서를 만들지 않고 4단계로 되돌림 (`test_unanswered_question_sends_back_to_step_four`, `test_changed_plan_marks_choice_for_recheck`) |
-| Markdown 저장 | 저장 위치 선택 후 외부에서 열었을 때 화면과 내용 일치 | 자동 확인 9/16: 내려받기 본문이 화면 내용과 같고 한글 파일명 인코딩 정상 (`test_download_sends_markdown_with_korean_filename`) · **외부 편집기·저장 위치 선택 창은 사용자 확인 대기** |
+| 목표·지역 변경 | 관련 선택과 문서 재검토 | 통과 9/16: 재확인 필요가 남으면 문서를 만들지 않고 4단계로 되돌림 (`test_unanswered_question_sends_back_to_step_four`, `test_changed_plan_marks_choice_for_recheck`) · 9/17 6-5a: 다시 저장하면 재확인이 풀리고 5단계로 감, 4단계를 건너뛰어도 5단계·내려받기가 재확인을 요구 (`test_saving_again_clears_recheck_and_opens_step_five`, `test_step_five_without_step_four_still_asks_for_recheck`, `test_download_without_step_four_is_blocked_after_plan_change`), 보관 안내는 이번 변경분만 (`test_archive_notice_shows_only_the_latest_plan_change`) · 브라우저 확인 9/17 (5장) |
+| Markdown 저장 | 저장 위치 선택 후 외부에서 열었을 때 화면과 내용 일치 | 자동 확인 9/16: 내려받기 본문이 화면 내용과 같고 한글 파일명 인코딩 정상 (`test_download_sends_markdown_with_korean_filename`) · 9/17 6-5d: 5단계를 연 뒤 원안이 바뀌면 [결과 저장]이 재확인을 안내하고 내려받지 않음 (`test_save_script_does_not_download_recheck_response`, 브라우저 확인) · **외부 편집기로 열어 보기·실제 저장 위치 선택 창은 사용자 확인 대기** |
 | PDF 저장 | 인쇄 결과에 화면 전용 요소가 없고 표·변경 표시·고지가 남음 | 사용자 검토 완료 9/16 · 개발 확인: 인쇄 규칙 14개 적용, A4 폭 186mm에서 표 잘림 없음(654px), 변경 줄은 배경색 없이 왼쪽 선으로 구분 (`test_pdf_button_is_on_every_result_screen`, `test_print_stylesheet_hides_screen_only_parts`) |
 | 공개 배포 | 실제 제한 자료 없이 합성 표시 유지 | 저장소 검사 통과 9/16 (`check_public_bundle.py` 위반 0) · 배포본 확인은 7단계 |
 
