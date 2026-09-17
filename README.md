@@ -1,24 +1,38 @@
 # 소비 시그널 정책맵 — 서비스
 
-기획안을 입력하면 소비데이터 근거로 확인할 점을 보여주고, 담당자가 고른 보완 방법을 반영한 보완 기획안을 만드는 서비스.
+> 최신화: 2026-09-17
 
-- 기준 문서: [최종기획서](../최종기획/최종기획서.md) · [개발업무 워크플로우](../최종기획/개발업무_워크플로우.md)
+## 이 저장소는 무엇인가
+
+지자체·행사 담당자가 **사업 기획안을 입력하면**, 카드 소비데이터 근거로 **확인할 점을 질문**으로 보여 주고, 담당자가 고른 보완 방법을 반영한 **보완 기획안 문서**를 만들어 주는 웹 서비스입니다.
+서비스는 예측하거나 판정하지 않습니다. 결정은 담당자가 합니다.
+
+```
+1 기획 입력 → 2 근거 확인 → 3 검토 질문 → 4 보완 선택 → 5 보완 기획안
+```
+
+- 기준 문서(저장소 밖, 한 단계 위 폴더): [최종기획서](../최종기획서.md) · [개발업무 워크플로우](../개발업무_워크플로우.md)
+- 사용법: [docs/usage_guide.md](docs/usage_guide.md)
 - 합의·진행 기록: [checks.md](./checks.md)
 
-## 개발 환경
+**화면과 저장소의 모든 수치는 시연용 합성 수치입니다.** 실제 카드 분석 결과는 `private/`에만 두고 공개 저장소에 올리지 않습니다.
+
+## 바로 실행하기
 
 uv + Python 3.12, FastAPI + Jinja2.
 
 ```powershell
-uv sync                                   # 의존성 설치
-uv run policy-signal-map                  # 로컬 실행 → http://127.0.0.1:8000
-uv run pytest                             # 테스트
-uv run python scripts/build_regions.py    # 지역 선택 목록 다시 만들기
+uv sync                                          # 의존성 설치
+uv run policy-signal-map                         # 로컬 실행 → http://127.0.0.1:8000
+uv run pytest                                    # 테스트
+uv run python scripts/check_public_bundle.py     # 공개 저장소 검사 (push 전)
+uv run python scripts/capture_screenshots.py     # 제출용 화면 캡처 다시 찍기
+uv run python scripts/build_regions.py           # 지역 선택 목록 다시 만들기
 ```
 
 ### 설정 (환경변수)
 
-설정하지 않으면 합성 근거 파일과 LLM 없음으로 실행된다. 바꿀 때는 `.env.example`을 `.env`로 복사해 값을 채우고 `--env-file`로 실행한다. `.env`는 git에 올라가지 않는다.
+설정하지 않으면 **합성 근거 파일, AI 의견 없음**으로 실행됩니다. 바꿀 때는 `.env.example`을 `.env`로 복사해 값을 채우고 `--env-file`로 실행합니다. `.env`는 git에 올라가지 않습니다.
 
 ```powershell
 uv run --env-file .env policy-signal-map
@@ -32,13 +46,59 @@ uv run --env-file .env policy-signal-map
 | `PSM_LLM_MODELS` | 없음 | 담당자가 3단계에서 고를 모델 목록(쉼표 구분). 비우면 `PSM_LLM_MODEL` 하나. `PSM_LLM_MODEL`을 비우면 목록의 첫 모델이 기본 |
 | `PSM_LLM_TIMEOUT_S` | `120` | LLM 응답을 기다릴 초. 모델을 바꾼 직후 첫 응답은 모델을 메모리에 올리느라 오래 걸린다 (기본값 위치: `config.py` `DEFAULT_LLM_TIMEOUT_S`) |
 
-실제 근거 파일과 `cloud`를 함께 설정하면 `uv run policy-signal-map`은 시작하지 않는다 (uvicorn을 직접 실행하면 근거 오류 화면).
+- 실제 근거 파일과 `cloud`를 함께 설정하면 `uv run policy-signal-map`은 시작하지 않는다 (uvicorn을 직접 실행하면 근거 오류 화면). 실제 근거 파일 + `local`은 허용한다(9/17 결정, `checks.md` 1장)
+- 근거 파일은 서버가 처음 필요할 때 한 번 읽어 보관한다. **파일을 바꾸면 서버를 다시 시작한다** (`--reload`는 코드 변경에만 반응)
+- 화면 상단 칩에 불러온 파일의 종류와 버전이 표시된다 (`시연용 합성 수치 · demo-001`). 파일에 문제가 있으면 `근거 파일 오류`로 바뀌고, 2단계부터 안내 화면이 나온다
+- 테스트는 `tests/conftest.py`가 `PSM_` 환경변수를 비우고 합성 파일로 고정하므로, 셸 설정과 상관없이 같은 결과가 나온다
 
-- 근거 파일은 서버가 처음 필요할 때 한 번 읽어 보관한다. **파일을 바꾸면 서버를 다시 시작한다** (`--reload`는 코드 변경에만 반응).
-- 화면 상단 칩에 불러온 파일의 종류와 버전이 표시된다 (`시연용 합성 수치 · demo-001`). 파일에 문제가 있으면 `근거 파일 오류`로 바뀌고, 2단계부터 오류 화면이 나온다.
-- 테스트는 `tests/conftest.py`가 `PSM_` 환경변수를 비우고 합성 파일로 고정하므로, 셸 설정과 상관없이 같은 결과가 나온다.
+## 파일 목록 (저장소 맨 위)
 
-## 구조
+| 파일 | 하는 일 (쉬운 말) | 언제 보거나 고치나 |
+|---|---|---|
+| `README.md` | 이 문서. 저장소 소개, 실행 방법, 폴더 안내 | 실행 방법이나 폴더 구성이 바뀔 때 |
+| `작업진행.md` | **서비스 완성까지 할 일 전체 목록**과 완료 기준(0~8장). 무엇이 끝났고 무엇이 남았는지 보는 곳 | 다음에 무엇을 할지 정할 때, 작업을 끝냈을 때 체크 |
+| `checks.md` | **결정한 것·연결 확인 결과·시험 결과·진행 기록**을 모은 장부 | 무언가를 정했거나 확인·완료했을 때 한 줄 기록 |
+| `1근거계산계층계획.md` | 1번 작업(근거 파일 읽기·비교 계산)을 **만들기 전에 세운 설계와 결정 이유** | 계산 규칙이 왜 이렇게 됐는지 궁금할 때. 본문은 작성 당시 기록이라 코드가 우선 |
+| `2근거확인화면계획.md` | 2번 작업(2단계 근거 확인 화면)의 설계와 결정 이유 | 〃 |
+| `3검토질문계획.md` | 3번 작업(3단계 검토 질문 규칙)의 설계와 결정 이유 | 〃 |
+| `4보완선택계획.md` | 4번 작업(4단계 보완 선택)의 설계와 결정 이유 | 〃 |
+| `5보완기획안계획.md` | 5번 작업(5단계 보완 기획안과 저장)의 설계와 결정 이유 | 〃 |
+| `6LLM참고의견계획.md` | AI 참고 의견 기능의 설계, 실제 모델 측정 결과, 모델 선택 기능 기록 | AI 기능을 바꾸거나 모델을 새로 고를 때 |
+| `pyproject.toml` | 프로젝트 이름, **필요한 라이브러리 목록**, 실행 명령(`policy-signal-map`), 테스트 설정 | 라이브러리를 추가·변경할 때 |
+| `uv.lock` | 설치할 라이브러리의 **정확한 버전을 고정**한 파일. `uv sync`가 자동으로 만듦 | 직접 고치지 않음 |
+| `.python-version` | 사용할 파이썬 버전(3.12) | 파이썬 버전을 바꿀 때 |
+| `.env.example` | 설정 파일 **예시**. 복사해서 `.env`를 만들어 씀 | 새 환경변수를 추가할 때 |
+| `.gitignore` | git에 올리지 않을 파일 목록. **실제 자료(private 폴더, 이름에 real이 들어간 근거 파일)와 비밀 설정 파일을 막음** | 올리면 안 되는 파일 종류가 늘어날 때 |
+| `.gitattributes` | 줄바꿈을 LF로 맞추고 이미지를 바이너리로 다루는 규칙 | 거의 고칠 일 없음 |
+
+## 폴더 목록
+
+**모든 폴더에 `README.md`가 있습니다.** 위쪽에는 누구나 읽을 수 있는 "이 폴더는 무엇인가"와 "파일 목록"이, 아래쪽에는 개발자용 자세한 설명이 있습니다. 새 파일을 만들면 그 폴더 README의 파일 목록에 추가합니다.
+
+| 폴더 | 하는 일 (쉬운 말) | README |
+|---|---|---|
+| `src/policy_signal_map/` | 서비스 코드 전체. 앱 시작·설정·표시 형식처럼 모두가 함께 쓰는 파일 | [README](src/policy_signal_map/README.md) |
+| `  plan/` | 담당자가 입력하는 기획안의 칸, 빠진 칸 확인, 지역 목록, 바뀐 칸 찾기 | [README](src/policy_signal_map/plan/README.md) |
+| `  evidence/` | 데이터 담당이 준 근거 파일을 읽고 검사하고, 이웃 달끼리 비교 계산 | [README](src/policy_signal_map/evidence/README.md) |
+| `  review/` | 검토 규칙(R07 등)을 실행해 담당자에게 던질 질문을 만듦 | [README](src/policy_signal_map/review/README.md) |
+| `  choices/` | 담당자가 고른 보완 방법을 저장·취소하고, 원안이 바뀌면 다시 확인하게 함 | [README](src/policy_signal_map/choices/README.md) |
+| `  document/` | 원안과 선택을 합쳐 보완 기획안 문서(Markdown)를 만듦 | [README](src/policy_signal_map/document/README.md) |
+| `  llm/` | AI 참고 의견: 로컬 AI 모델에 요청하고, 답을 검사하고, 모델 표시 이름을 관리 | [README](src/policy_signal_map/llm/README.md) |
+| `  web/` | 화면: 주소별 처리, 세션, 폼 읽기, 화면용 데이터, AI 모델 선택 | [README](src/policy_signal_map/web/README.md) |
+| `    routes/` | 주소(`/step/1` 등)마다 무엇을 보여 줄지 정함 | [README](src/policy_signal_map/web/routes/README.md) |
+| `    templates/` (`steps/`, `partials/`) | 화면의 HTML 틀 | [README](src/policy_signal_map/web/templates/README.md) |
+| `    static/` (`css/`, `js/`) | 화면 모양(CSS)과 즉시 반응(JS) | [README](src/policy_signal_map/web/static/README.md) |
+| `  resources/` (`rules/`, `evidence/`, `documents/`, `prompts/`, `llm/`) | 코드가 읽는 자료: 규칙 문구, 합성 근거, 문서 양식, AI 요청 문장, 모델 표시 이름, 지역 목록 | [README](src/policy_signal_map/resources/README.md) |
+| `tests/` (`fixtures/evidence/`) | 자동 시험(pytest)과 시험용 근거 파일 | [README](tests/README.md) |
+| `scripts/` | 사람이 필요할 때 실행하는 도구: 지역 목록·합성 근거 만들기, 공개 저장소 검사, 화면 캡처 | [README](scripts/README.md) |
+| `docs/` (`screenshots/`) | 사람이 읽는 문서: 규칙 설명, 사용법, 제출용 캡처 | [README](docs/README.md) |
+| `private/` | 실제 분석 근거 파일을 두는 곳 (README 외 git 제외) | [README](private/README.md) |
+
+---
+
+## 자세한 설명 (개발자용)
+
+### 구조와 의존 방향
 
 순수 로직(plan·evidence·review·choices·document)과 웹 계층(web)을 나눈다. 의존 방향은 한쪽으로만 간다.
 
@@ -47,30 +107,11 @@ web → document → choices → review → evidence, plan
 llm → review 결과·plan·labels·config만 사용 (evidence·web 직접 사용 금지)
 ```
 
-**모든 폴더에 `README.md`가 있다.** 폴더의 역할, 만들 파일(있음/예정), 파일별 상세, 지켜야 할 원칙, 테스트를 적어 두었다. 새 파일을 만들기 전에 해당 폴더 README를 먼저 보고, 구현하면 표의 상태를 갱신한다.
+`tests/test_boundaries.py`가 일부 방향을 자동으로 검사한다. 자세한 내용은 [src/policy_signal_map/README.md](src/policy_signal_map/README.md).
 
-| 폴더 | 역할 | 설명 |
-|---|---|---|
-| `src/policy_signal_map/` | 패키지 루트: app·paths·config | [README](src/policy_signal_map/README.md) |
-| `  plan/` | S01 기획 입력 | [README](src/policy_signal_map/plan/README.md) |
-| `  evidence/` | 분석 근거 읽기·검증, 비교 A/B 계산 | [README](src/policy_signal_map/evidence/README.md) |
-| `  review/` | S02 검토 규칙 실행 | [README](src/policy_signal_map/review/README.md) |
-| `  choices/` | S03 보완 선택·실행 조건·재확인 | [README](src/policy_signal_map/choices/README.md) |
-| `  document/` | S04·S05 보완 기획안 Markdown | [README](src/policy_signal_map/document/README.md) |
-| `  llm/` | AI 참고 의견 (로컬 LLM) | [README](src/policy_signal_map/llm/README.md) |
-| `  web/` | 세션·폼·표시 형식 | [README](src/policy_signal_map/web/README.md) |
-| `    routes/` | 단계별 라우트 | [README](src/policy_signal_map/web/routes/README.md) |
-| `    templates/` (`steps/`, `partials/`) | Jinja2 화면 | [README](src/policy_signal_map/web/templates/README.md) |
-| `    static/` (`css/`, `js/`) | 스타일·화면 반응·결과 저장 | [README](src/policy_signal_map/web/static/README.md) |
-| `  resources/` (`rules/`, `evidence/`, `documents/`) | 규칙 원본·합성 근거·문서 양식 | [README](src/policy_signal_map/resources/README.md) |
-| `tests/` (`fixtures/evidence/`) | pytest, 경계 사례 | [README](tests/README.md) |
-| `scripts/` | 지역 목록·합성 근거 생성, 공개 자료 검사 | [README](scripts/README.md) |
-| `docs/` (`screenshots/`) | 규칙 설명·대안 비교·사용법·제출 구성 | [README](docs/README.md) |
-| `private/` | 실제 분석 근거 (README 외 git 제외) | [README](private/README.md) |
+### 데이터 담당과의 경계
 
-데이터 분석 담당의 작업은 `../Analysis/`에 둔다. 두 폴더 사이에서는 `review_evidence.json`만 오간다.
-
-화면의 모든 수치는 시연용 합성 수치다. 실제 카드 분석 결과는 `private/`에만 둔다.
+데이터 분석 담당의 작업은 `../Analysis/`에 둔다(저장소 밖). 두 폴더 사이에서는 `review_evidence.json`만 오간다. 실제 결과 파일은 `private/review_evidence_real_v{버전}.json`으로 두고 `PSM_EVIDENCE_PATH`로 지정한다.
 
 ## 권리 고지
 
