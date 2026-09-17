@@ -29,8 +29,12 @@ class WorkState:
     changed_fields: frozenset[str] = frozenset()
     # 담당자가 고른 보완 방법
     choices: ChoiceSet = field(default_factory=ChoiceSet)
-    # AI 참고 의견과 그것을 만든 원안. 원안이 바뀌면 다시 부른다 (PlanInput은 해시할 수 없어 값으로 비교한다)
-    opinions: OpinionSet | None = None
+    # 담당자가 3단계에서 고른 AI 모델. None이면 설정의 기본 모델
+    llm_model: str | None = None
+    # AI 참고 의견을 모델별로 보관하고, 그것을 만든 원안을 함께 둔다.
+    # 원안이 바뀌면 모두 다시 부른다 (PlanInput은 해시할 수 없어 값으로 비교한다).
+    # 모델을 바꿨다가 돌아오면 앞서 받은 의견을 다시 쓴다 (모델 호출이 느리기 때문)
+    opinions: dict[str, OpinionSet] = field(default_factory=dict)
     opinions_for: PlanInput | None = None
 
     @property
@@ -40,18 +44,20 @@ class WorkState:
     def start_review(self) -> None:
         self.changed_fields = diff_plan(self.original, self.plan)
         self.original = deepcopy(self.plan)
-        self.opinions = None
+        self.opinions = {}
         self.opinions_for = None
 
-    def cached_opinions(self) -> OpinionSet | None:
-        """이번 원안으로 만든 의견만 다시 쓴다."""
-        if self.opinions is not None and self.opinions_for == self.original:
-            return self.opinions
+    def cached_opinions(self, model: str) -> OpinionSet | None:
+        """이번 원안으로 이 모델이 만든 의견만 다시 쓴다."""
+        if self.opinions_for == self.original:
+            return self.opinions.get(model)
         return None
 
-    def remember_opinions(self, opinions: OpinionSet) -> None:
-        self.opinions = opinions
-        self.opinions_for = deepcopy(self.original)
+    def remember_opinions(self, model: str, opinions: OpinionSet) -> None:
+        if self.opinions_for != self.original:
+            self.opinions = {}
+            self.opinions_for = deepcopy(self.original)
+        self.opinions[model] = opinions
 
 
 class SessionStore:

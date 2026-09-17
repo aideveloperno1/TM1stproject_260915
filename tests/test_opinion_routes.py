@@ -8,6 +8,7 @@ from helpers import VALID_FORM
 from policy_signal_map.app import app
 from policy_signal_map.llm.base import FakeProvider, LLMError
 from policy_signal_map.web.routes import opinions as opinion_routes
+from policy_signal_map.web.session import COOKIE_NAME, store
 
 CLEAN = "- 참여자 확인 자료를 어디서 모을지 정해 두세요 [R07]\n- 사용처 범위를 적어 두세요 [R07]"
 
@@ -36,8 +37,23 @@ def reviewed_client() -> TestClient:
     return client
 
 
-def use_provider(monkeypatch: pytest.MonkeyPatch, fake: FakeProvider) -> None:
-    monkeypatch.setattr(opinion_routes, "get_provider", lambda settings: fake)
+def use_provider(monkeypatch: pytest.MonkeyPatch, fake: FakeProvider) -> list[str | None]:
+    """가짜 제공자를 끼운다. 돌려주는 목록에 요청마다 고른 모델이 쌓인다."""
+    asked: list[str | None] = []
+
+    def _get(settings, model=None):
+        asked.append(model)
+        return fake
+
+    monkeypatch.setattr(opinion_routes, "get_provider", _get)
+    return asked
+
+
+def state_of(client: TestClient):
+    return store.get_or_create(client.cookies.get(COOKIE_NAME))[1]
+
+
+MODELS_ENV = {"PSM_LLM_MODELS": "시험모델,두번째모델"}
 
 
 def test_ai_area_is_absent_when_provider_is_none():
@@ -138,3 +154,55 @@ def test_evidence_error_stops_the_call(local_llm, monkeypatch, use_evidence):
     )
     assert client.get("/step/3/opinions").json()["state"] == "off"
     assert fake.calls == []
+
+
+def test_selected_model_is_used_and_labelled(local_llm, monkeypatch):
+    fake = local_llm(**MODELS_ENV)
+    asked = use_provider(monkeypatch, fake)
+    client = reviewed_client()
+    state_of(client).llm_model = "두번째모델"
+
+    data = client.get("/step/3/opinions").json()
+    assert asked == ["두번째모델"]
+    assert data["model"] == "두번째모델"
+    # 모델 목록 파일에 없는 모델은 이름을 그대로 표시
+    assert data["model_label"] == "두번째모델"
+
+
+def test_opinions_are_cached_per_model(local_llm, monkeypatch):
+    fake = local_llm(**MODELS_ENV)
+    asked = use_provider(monkeypatch, fake)
+    client = reviewed_client()
+
+    client.get("/step/3/opinions")
+    state_of(client).llm_model = "두번째모델"
+    client.get("/step/3/opinions")
+    state_of(client).llm_model = "시험모델"
+    client.get("/step/3/opinions")
+    # 처음 모델로 돌아오면 앞서 받은 의견을 다시 쓴다
+    assert asked == ["시험모델", "두번째모델"]
+    assert len(fake.calls) == 2
+
+
+def test_plan_change_clears_every_model_cache(local_llm, monkeypatch):
+    fake = local_llm(**MODELS_ENV)
+    use_provider(monkeypatch, fake)
+    client = reviewed_client()
+    client.get("/step/3/opinions")
+    state_of(client).llm_model = "두번째모델"
+    client.get("/step/3/opinions")
+
+    client.post("/step/1", data={**VALID_FORM, "indicator_use": "reference"})
+    client.get("/step/3/opinions")
+    state_of(client).llm_model = "시험모델"
+    client.get("/step/3/opinions")
+    assert len(fake.calls) == 4
+
+
+def test_model_removed_from_settings_falls_back_to_default(local_llm, monkeypatch):
+    fake = local_llm()
+    asked = use_provider(monkeypatch, fake)
+    client = reviewed_client()
+    state_of(client).llm_model = "지워진모델"
+    client.get("/step/3/opinions")
+    assert asked == ["시험모델"]

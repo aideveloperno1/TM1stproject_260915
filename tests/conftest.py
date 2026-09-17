@@ -16,6 +16,12 @@ from policy_signal_map.web.evidence_state import EvidenceState, get_evidence_sta
 
 
 @pytest.fixture(autouse=True)
+def no_real_llm_server(monkeypatch: pytest.MonkeyPatch) -> None:
+    """3단계 화면이 받아 둔 모델 목록을 물을 때 이 PC의 실제 Ollama에 닿지 않게 한다 (C-8-2)."""
+    monkeypatch.setattr("policy_signal_map.llm.local.list_models", lambda *args, **kwargs: None)
+
+
+@pytest.fixture(autouse=True)
 def isolated_evidence(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     for key in list(os.environ):
         if key.startswith("PSM_"):

@@ -7,7 +7,7 @@ import pytest
 
 from policy_signal_map.config import DEFAULT_LLM_TIMEOUT_S, SettingsError, load_settings
 from policy_signal_map.llm.base import FakeProvider, LLMError, Message, get_provider
-from policy_signal_map.llm.local import LocalProvider
+from policy_signal_map.llm.local import LocalProvider, is_installed, list_models
 
 
 def settings(**env: str):
@@ -115,3 +115,43 @@ def test_fake_provider_records_calls_and_can_fail():
     broken = FakeProvider(error=LLMError("연결 실패"))
     with pytest.raises(LLMError):
         broken.generate([], max_tokens=100, timeout_s=1)
+
+
+LOCAL = dict(PSM_LLM_PROVIDER="local", PSM_LLM_BASE_URL="http://127.0.0.1:11434/v1")
+
+
+def test_provider_uses_the_chosen_model_from_the_list():
+    provider = get_provider(settings(**LOCAL, PSM_LLM_MODELS="a,b"), "b")
+    assert provider is not None and provider.model == "b"
+
+
+def test_provider_refuses_a_model_outside_the_list():
+    with pytest.raises(LLMError, match="선택할 수 없는 모델"):
+        get_provider(settings(**LOCAL, PSM_LLM_MODELS="a,b"), "c")
+
+
+def test_list_models_reads_openai_model_list(monkeypatch: pytest.MonkeyPatch):
+    sent: dict[str, object] = {}
+
+    def fake_urlopen(request, timeout):
+        sent["url"] = request.full_url
+        sent["timeout"] = timeout
+        return FakeResponse(json.dumps({"data": [{"id": "exaone3.5:7.8b"}, {"id": "gemma"}]}).encode())
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    installed = list_models("http://127.0.0.1:11434/v1/")
+    assert sent["url"] == "http://127.0.0.1:11434/v1/models"
+    assert sent["timeout"] == 2.0
+    assert is_installed("exaone3.5:7.8b", installed) is True
+    # 태그 없는 이름은 :latest와 같다
+    assert is_installed("gemma:latest", installed) is True
+    assert is_installed("gemma4:26b-a4b-it-qat", installed) is False
+
+
+def test_list_models_failure_is_unknown_not_empty(monkeypatch: pytest.MonkeyPatch):
+    def refuse(request, timeout):
+        raise urllib.error.URLError("연결 거부")
+
+    monkeypatch.setattr("urllib.request.urlopen", refuse)
+    assert list_models("http://127.0.0.1:11434/v1") is None
+    assert is_installed("a", None) is None

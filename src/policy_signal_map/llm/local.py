@@ -16,6 +16,34 @@ from .base import LLMError, Message
 
 log = logging.getLogger(__name__)
 
+# 받아 둔 모델 목록을 물을 때 기다릴 시간(초). 3단계 화면을 그리면서 부르므로 짧게 둔다.
+# Ollama가 꺼져 있으면 연결 거부로 바로 돌아오고, 이 시간은 응답이 멈춘 경우에만 쓰인다.
+LIST_MODELS_TIMEOUT_S = 2.0
+
+
+def _same_model(name: str) -> str:
+    # Ollama는 태그 없는 이름을 ":latest"로 돌려준다. 설정의 "모델"과 목록의 "모델:latest"를 같게 본다
+    return name if ":" in name else f"{name}:latest"
+
+
+def list_models(base_url: str, timeout_s: float = LIST_MODELS_TIMEOUT_S) -> frozenset[str] | None:
+    """OpenAI 호환 서버에 받아 둔 모델 이름. 확인하지 못하면 None (없다고 단정하지 않는다)."""
+    request = urllib.request.Request(f"{base_url.rstrip('/')}/models", method="GET")
+    try:
+        with urllib.request.urlopen(request, timeout=timeout_s) as response:  # noqa: S310
+            payload = json.loads(response.read().decode("utf-8"))
+        return frozenset(_same_model(item["id"]) for item in payload["data"])
+    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError, KeyError, TypeError):
+        log.info("로컬 LLM 모델 목록을 확인하지 못함")
+        return None
+
+
+def is_installed(model: str, installed: frozenset[str] | None) -> bool | None:
+    """True·False, 목록을 확인하지 못했으면 None."""
+    if installed is None:
+        return None
+    return _same_model(model) in installed
+
 
 @dataclass
 class LocalProvider:

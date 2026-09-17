@@ -11,7 +11,9 @@ from fastapi.responses import JSONResponse, Response
 
 from ...llm.base import LLMError, get_provider
 from ...llm.opinions import safe_collect
+from ...llm.catalog import model_info
 from ...review.engine import run_review
+from ..ai_models import current_model
 from ..dependencies import evidence_state_dep, session_dep
 from ..evidence_state import EvidenceState
 from ..session import WorkState
@@ -34,10 +36,11 @@ def opinions(session: Session, evidence: Evidence) -> Response:
     if settings is None or settings.llm_provider == "none":
         return JSONResponse(OFF)
 
-    cached = state.cached_opinions()
+    model = current_model(settings, state)
+    cached = state.cached_opinions(model)
     if cached is None:
         try:
-            provider = get_provider(settings)
+            provider = get_provider(settings, model)
         except LLMError:
             return JSONResponse(FAILED)
         if provider is None:
@@ -49,11 +52,11 @@ def opinions(session: Session, evidence: Evidence) -> Response:
             result,
             state.original,
             timeout_s=settings.llm_timeout_s,
-            model=settings.llm_model or "",
+            model=model,
         )
         if cached is None:
             return JSONResponse(FAILED)
-        state.remember_opinions(cached)
+        state.remember_opinions(model, cached)
 
     return JSONResponse(
         {
@@ -62,6 +65,7 @@ def opinions(session: Session, evidence: Evidence) -> Response:
                 {"text": opinion.text, "rule_ids": list(opinion.cited_rule_ids)} for opinion in cached.opinions
             ],
             "model": cached.model,
+            "model_label": model_info(cached.model).label,
             "created_at": cached.created_at,
             "dropped_count": cached.dropped_count,
         }
