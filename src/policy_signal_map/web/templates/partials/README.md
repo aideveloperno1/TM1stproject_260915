@@ -1,22 +1,47 @@
-# web/templates/partials/ — 반복되는 화면 조각
+# `web/templates/partials/` — 여러 화면에서 반복되는 조각
 
-## 역할
+> 최신화: 2026-09-17
+
+## 이 폴더는 무엇인가
+
+여러 화면에서 **같은 모양으로 반복되는 부분**(근거 표시 칩, 월별 표, 질문 카드, "추가 확정 필요" 표시 등)을 따로 떼어 둔 곳입니다.
+한곳에서 만들어 화면들이 불러 쓰므로, 같은 정보가 화면마다 다르게 보이지 않습니다.
+
+## 파일 목록
+
+| 파일 | 하는 일 (쉬운 말) | 언제 보거나 고치나 |
+|---|---|---|
+| `evidence_badges.html` | 2단계 위쪽 **근거 범위 칩**: "전국 참고", 기간, 자료 버전, 합성·실제 | 범위 표시 방식을 바꿀 때 |
+| `month_table.html` | 2단계 **월별 표**: 달마다 외국인 결제금액, 비중 세 가지, 자료 상태 | 월별 표 열을 바꿀 때 |
+| `pair_table.html` | 2단계 **이웃 달 비교 표**: 증감률, 비중 변화, 방향이 같은지 다른지, 비교하지 못한 이유 | 비교 표 열을 바꿀 때 |
+| `rule_card.html` | 3단계 **질문 카드 하나**: 규칙 번호·제목, 질문, 왜 묻는지, 근거 칩, 지역 안내 | 질문 카드 모양을 바꿀 때 |
+| `option_card.html` | 4단계 **보완 방법 카드 하나**: 바뀌는 곳, 필요한 자료, 운영 부담 | 보완 방법 카드 모양을 바꿀 때 |
+| `pending_badge.html` | 노란 **"추가 확정 필요" 표시** | 표시 모양을 바꿀 때 |
+| `evidence_trace.html` | 5단계 **근거 추적 칸**: 근거마다 범위·기간·버전, 그 근거로 바꾼 문장, 해석 한계 | 근거 추적 내용을 바꿀 때 |
+
+---
+
+## 자세한 설명 (개발자용)
+
+### 역할 요약
 
 여러 단계 화면에서 같은 모양으로 반복되는 부분을 `{% include %}` 또는 매크로로 분리한다. 같은 정보(예: 전국 참고 표시)가 화면마다 다르게 보이지 않게 하는 것이 목적이다.
 
-## 만들 파일
+### 조각 상세
 
-| 파일 | 상태 | 쓰는 화면 | 내용 |
-|---|---|---|---|
-| `evidence_badges.html` | 있음 | evidence (이후 questions, draft) | 매크로 `evidence_badges(record_view, dataset_version, data_kind, is_main)`: 범위(전국 참고 — 특정 지역의 진단이 아님 / 예시), 기간, 자료 버전, 합성·실제 |
-| `month_table.html` | 있음 | evidence | 매크로 `month_table(record_view)`: 월·외국인 결제금액·전체 분모 비중·미상 비중·미상 제외 비중·상태(+경고). 보류 월 회색 행, 행마다 `data-row="month"` |
-| `pair_table.html` | 있음 | evidence | 매크로 `pair_table(record_view)`: 구간·증감률 2개·비중 변화·비교 A·미상 제외 변화·비교 B. 보류 구간은 한 칸에 사유. 시안의 구간 칩 대신 표 (2근거확인화면계획 결정 ③) |
-| `rule_card.html` | 있음 | questions | 매크로 `rule_card(outcome, kind_labels)`: 규칙 ID·제목·결과 종류·메시지·"왜 묻나요?"·범위/근거 칩·지역 안내·함께 확인. **대안은 4단계에서만 보여준다** |
-| `option_card.html` | 있음 | choices | 대안 제목·바뀌는 곳·필요 자료·운영 부담·선택 표시. 점수·추천 순위 없음 |
-| `pending_badge.html` | 있음 | choices (이후 input, draft) | "추가 확정 필요" 노란 칩 매크로 |
-| `evidence_trace.html` | 있음 | draft | 근거별로 범위·기간·자료 버전, 그 근거로 바꾼 문장, 해석 한계 |
+| 파일 | 쓰는 화면 | 내용 |
+|---|---|---|
+| `evidence_badges.html` | evidence | 매크로 `evidence_badges(record_view, dataset_version, data_kind, is_main)`: 범위(전국 참고 — 특정 지역의 진단이 아님 / 예시), 기간, 자료 버전, 합성·실제 |
+| `month_table.html` | evidence | 매크로 `month_table(record_view)`: 월·외국인 결제금액·전체 분모 비중·미상 비중·미상 제외 비중·상태(+경고). 보류 월 회색 행, 행마다 `data-row="month"` |
+| `pair_table.html` | evidence | 매크로 `pair_table(record_view)`: 구간·증감률 2개·비중 변화·비교 A·미상 제외 변화·비교 B. 보류 구간은 한 칸에 사유. 시안의 구간 칩 대신 표 (2근거확인화면계획 결정 ③) |
+| `rule_card.html` | questions | 매크로 `rule_card(outcome, kind_labels)`: 규칙 ID·제목·결과 종류·메시지·"왜 묻나요?"·범위/근거 칩·지역 안내·함께 확인. **대안은 4단계에서만 보여준다** |
+| `option_card.html` | choices | 대안 제목·바뀌는 곳·필요 자료·운영 부담·선택 표시. 점수·추천 순위 없음 |
+| `pending_badge.html` | choices, draft | "추가 확정 필요" 노란 칩 매크로 |
+| `evidence_trace.html` | draft | 근거별로 범위·기간·자료 버전, 그 근거로 바꾼 문장, 해석 한계 |
 
-## 원칙
+모든 조각은 매크로이며 화면에서 `from "partials/파일" import 매크로`로 불러온다.
+
+### 원칙
 
 - 조각은 받은 값만 표시한다. 필요한 값이 없으면 빈칸이 아니라 "자료 없음"을 표시한다
 - 매크로 인자 이름은 로직 데이터 형태의 필드 이름과 같게 둔다 (예: `evidence_id`, `calculation_status`)
