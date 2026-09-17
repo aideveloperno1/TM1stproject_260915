@@ -77,7 +77,7 @@ def test_shared_execution_input_is_filled_for_related_question():
     html = c.get("/step/4").text
     # R03 카드에도 같은 수집자료가 채워져 있고, 함께 쓰는 입력임을 알린다
     assert html.count("쿠폰 사용 실적") >= 2
-    assert "같은 자료를 묻는 질문" in text_of(html)
+    assert "같은 자료를 묻는 질문(R07)과 함께 쓰는 입력입니다" in text_of(html)
 
 
 def test_next_step_is_blocked_until_every_question_is_answered():
@@ -206,3 +206,10 @@ def test_archive_notice_shows_only_the_latest_plan_change():
 
     c.post("/step/1", data={**VALID_FORM, "name": "사업명만 바꿈"})
     assert notice(c) is None
+
+
+def test_shared_input_note_is_omitted_without_related_question():
+    # 예시 기획에는 R07과 같은 자료를 묻는 질문이 없다. "(없음)"으로 채운 문장을 보이지 않는다 (6-4a)
+    text = text_of(reviewed_client().get("/step/4").text)
+    assert "같은 자료를 묻는" not in text
+    assert "(없음)" not in text

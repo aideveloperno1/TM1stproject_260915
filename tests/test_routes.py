@@ -78,3 +78,9 @@ def test_user_input_is_escaped():
     response = client().post("/step/1", data={**VALID_FORM, "name": "<script>alert(1)</script>", "target": ""})
     assert "<script>alert(1)</script>" not in response.text
     assert "&lt;script&gt;" in response.text
+
+
+def test_pages_declare_an_icon_so_browsers_do_not_request_favicon():
+    # 파비콘 파일이 없어 /favicon.ico 요청이 404 콘솔 기록을 남기던 것을 막는다 (6-4a)
+    html = TestClient(app).get("/step/1").text
+    assert '<link rel="icon" href="data:," />' in html

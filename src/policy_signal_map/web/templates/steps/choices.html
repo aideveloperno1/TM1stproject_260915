@@ -73,8 +73,9 @@
           {% if needs_execution %}
             <fieldset class="field execution-box">
               <legend class="label">실행 조건 <span class="hint">대안 A를 고른 경우</span></legend>
-              {% if outcome.merge_group %}
-                <p class="note">같은 자료를 묻는 질문({{ outcome.related_rule_ids | join(", ") or "없음" }})과 함께 쓰는 입력입니다. 한 번만 적으면 됩니다.</p>
+              {% if outcome.related_rule_ids %}
+                {# 함께 묻는 질문이 없으면 "(없음)"으로 채우지 않고 문장을 생략한다 (6-4a) #}
+                <p class="note">같은 자료를 묻는 질문({{ outcome.related_rule_ids | join(", ") }})과 함께 쓰는 입력입니다. 한 번만 적으면 됩니다.</p>
               {% endif %}
               <label class="field">
                 <span class="label">수집할 자료 <span class="req">필수</span></span>
