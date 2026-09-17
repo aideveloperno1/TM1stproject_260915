@@ -65,7 +65,11 @@ class WorkState:
             return self.opinions.get(model)
         return None
 
-    def remember_opinions(self, model: str, opinions: OpinionSet) -> None:
+    def remember_opinions(self, model: str, opinions: OpinionSet, plan: PlanInput) -> None:
+        """plan은 의견을 요청할 때의 원안. 모델을 기다리는 사이(최대 PSM_LLM_TIMEOUT_S) 원안이 바뀌었으면
+        보관하지 않는다. 보관하면 이전 원안의 의견이 새 원안의 의견으로 쓰인다 (6-5c)."""
+        if plan != self.original:
+            return
         if self.opinions_for != self.original:
             self.opinions = {}
             self.opinions_for = deepcopy(self.original)

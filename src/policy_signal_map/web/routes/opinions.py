@@ -46,17 +46,19 @@ def opinions(session: Session, evidence: Evidence) -> Response:
         if provider is None:
             return JSONResponse(OFF)
 
-        result = run_review(state.original, evidence.result)
+        # 요청을 시작한 원안. 응답을 기다리는 동안 담당자가 원안을 다시 제출할 수 있다
+        asked_for = state.original
+        result = run_review(asked_for, evidence.result)
         cached = safe_collect(
             provider,
             result,
-            state.original,
+            asked_for,
             timeout_s=settings.llm_timeout_s,
             model=model,
         )
         if cached is None:
             return JSONResponse(FAILED)
-        state.remember_opinions(model, cached)
+        state.remember_opinions(model, cached, asked_for)
 
     return JSONResponse(
         {

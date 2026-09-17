@@ -283,3 +283,24 @@ def test_unknown_install_state_does_not_block_choice(local_llm):
     assert "받아 두지 않음" not in client.get("/step/3").text
     response = client.post("/step/3/ai-model", data={"model": "gemma4:26b-a4b-it-qat"}, follow_redirects=False)
     assert response.status_code == 303
+
+
+def test_opinion_is_not_kept_when_plan_changes_while_waiting(local_llm, monkeypatch):
+    local_llm()
+    client = reviewed_client()
+    state = state_of(client)
+
+    class PlanChangesWhileWaiting(FakeProvider):
+        def generate(self, messages, *, max_tokens, timeout_s):
+            # 모델 응답을 기다리는 사이 담당자가 원안을 다시 제출한 상황
+            client.post("/step/1", data={**VALID_FORM, "target": "외국인 관광객"})
+            return super().generate(messages, max_tokens=max_tokens, timeout_s=timeout_s)
+
+    fake = PlanChangesWhileWaiting(reply=CLEAN)
+    use_provider(monkeypatch, fake)
+
+    assert client.get("/step/3/opinions").json()["state"] == "ok"
+    assert state.cached_opinions("시험모델") is None
+    # 다음 요청은 새 원안으로 다시 부른다
+    client.get("/step/3/opinions")
+    assert len(fake.calls) == 2
