@@ -93,7 +93,10 @@ class EvidenceView:
     dataset_version: str
     data_kind: str
     method_lines: tuple[str, ...] = METHOD_LINES
-    interpretation_notes: tuple[str, ...] = field(default=FIXED_INTERPRETATION_NOTES)
+    # 해석 한계는 누가 쓴 문장인지 나눠 보여 준다. 근거 파일의 한계(분석 담당)와 서비스 고정 원칙이
+    # 비슷한 뜻을 담을 수 있는데, 분석 담당 문장을 서비스가 고치거나 골라 빼지 않기 위해서다 (S2, 2026-09-17)
+    data_limitations: tuple[str, ...] = ()
+    service_notes: tuple[str, ...] = field(default=FIXED_INTERPRETATION_NOTES)
 
 
 # ---------------------------------------------------------------- 레코드
@@ -251,5 +254,5 @@ def build_evidence_view(plan: PlanInput, result: LoadResult) -> EvidenceView:
         chart_data=chart_data(main) if show_numbers and main else {},
         dataset_version=file.dataset_version,
         data_kind=file.data_kind,
-        interpretation_notes=(main.limitations if main else ()) + FIXED_INTERPRETATION_NOTES,
+        data_limitations=main.limitations if main else (),
     )

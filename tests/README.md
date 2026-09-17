@@ -7,7 +7,7 @@
 
 ## 만들 파일
 
-개수는 매개변수화한 경우를 포함한 수집 기준이다(2026-09-17, 전체 416개). 바뀌면 `uv run pytest --collect-only -q`로 다시 센다.
+개수는 매개변수화한 경우를 포함한 수집 기준이다(2026-09-17, 전체 418개). 바뀌면 `uv run pytest --collect-only -q`로 다시 센다.
 
 | 파일 | 개수 | 대상 |
 |---|---:|---|
@@ -34,10 +34,10 @@
 | `test_llm_prompt.py` | 11 | `llm/prompt.py` |
 | `test_llm_guard.py` | 14 | `llm/guard.py` |
 | `test_evidence_state.py` | 9 | `web/evidence_state.py` |
-| `test_evidence_view.py` | 31 | `web/evidence_view.py` |
+| `test_evidence_view.py` | 32 | `web/evidence_view.py` |
 | `test_top_badge.py` | 4 | 상단 자료 표시 |
 | `test_routes.py` | 10 | 1단계 입력, 단계 잠금, 정적 파일 |
-| `test_evidence_routes.py` | 12 | 2단계 화면 |
+| `test_evidence_routes.py` | 13 | 2단계 화면 |
 | `test_question_routes.py` | 10 | 3단계 화면 |
 | `test_opinion_routes.py` | 22 | 3단계 AI 참고 의견 주소·모델별 캐시·모델 선택 |
 | `test_choice_routes.py` | 13 | 4단계 화면 |

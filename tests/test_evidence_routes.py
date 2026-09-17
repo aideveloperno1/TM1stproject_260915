@@ -115,3 +115,10 @@ def test_blocked_evidence_page_has_no_numbers(use_evidence, tmp_path: Path):
 
 def test_unknown_step_is_not_served():
     assert reviewed_client().get("/step/9", follow_redirects=False).status_code == 404
+
+
+def test_step_two_shows_who_wrote_each_limitation():
+    text = text_of(reviewed_client().get("/step/2").text)
+    assert "자료의 한계 분석 담당 작성" in text
+    assert "서비스 해석 원칙" in text
+    assert text.index("자료의 한계") < text.index("서비스 해석 원칙")

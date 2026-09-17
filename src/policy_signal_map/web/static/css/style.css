@@ -843,6 +843,10 @@ textarea.input {
   }
 }
 
+.notes-heading {
+  margin: 12px 0 6px;
+}
+
 .plain-list {
   margin: 0;
   padding-left: 18px;

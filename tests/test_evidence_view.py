@@ -187,3 +187,11 @@ def test_demo_rows_match_expected_screen_values():
     assert hold.months[4].foreign_amount == 0
     assert hold.months[4].foreign_share_pct is None
     assert hold.months[2].foreign_amount is None
+
+
+def test_data_limitations_and_service_notes_are_kept_apart():
+    view = view_of(DEFAULT_EVIDENCE_PATH)
+    demo_record = demo_data()["records"][0]
+    assert view.data_limitations == tuple(demo_record["limitations"])
+    # 서비스 고정 원칙은 파일과 상관없이 따로 있고, 파일 문장과 섞이지 않는다
+    assert view.service_notes and not set(view.service_notes) & set(view.data_limitations)

@@ -69,7 +69,12 @@
     </div>
     <div class="card info-card">
       <h2 class="section-title">해석 한계</h2>
-      <ul class="plain-list">{% for line in view.interpretation_notes %}<li>{{ line }}</li>{% endfor %}</ul>
+      {% if view.data_limitations %}
+        <h3 class="label-strong notes-heading">자료의 한계 <span class="hint">분석 담당 작성</span></h3>
+        <ul class="plain-list">{% for line in view.data_limitations %}<li>{{ line }}</li>{% endfor %}</ul>
+      {% endif %}
+      <h3 class="label-strong notes-heading">서비스 해석 원칙</h3>
+      <ul class="plain-list">{% for line in view.service_notes %}<li>{{ line }}</li>{% endfor %}</ul>
     </div>
   </section>
 
