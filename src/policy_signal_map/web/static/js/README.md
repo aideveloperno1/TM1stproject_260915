@@ -48,9 +48,9 @@
 checks.md 결정: [결과 저장] → 저장 위치 선택 창 → 사용자가 고른 폴더에 Markdown 저장.
 
 1. 버튼의 `data-url`(`/step/5/download`, 요청서는 `?kind=request`)과 `data-filename`을 읽는다
-2. `window.showSaveFilePicker`가 있으면 먼저 위치를 고르게 하고(취소하면 "저장을 취소했습니다") 그다음 본문을 `fetch`해 `createWritable()` → `write()` → `close()`
-3. 없으면 (Firefox·Safari 등) `<a download>`로 내려받고 "저장 위치 선택을 지원하지 않는 브라우저라 내려받기 폴더에 저장했습니다" 안내
-4. 실패하면 안내 후 내려받기로 대신한다. 안내 문구는 화면의 `[data-save-note]` 자리에 넣는다
+2. **본문을 먼저 `fetch`한다** (6-5d). 409(화면을 연 뒤 원안이 바뀌어 재확인 필요)면 "원안이 바뀌어 보완 선택을 다시 확인해야 합니다…" 안내만 하고 저장하지 않는다. 그 밖의 실패도 안내만 한다 — 예전에는 실패하면 주소를 그대로 내려받아 오류 문장이 `.md`로 저장될 수 있었다
+3. `window.showSaveFilePicker`가 있으면 위치를 고르게 하고(취소하면 "저장을 취소했습니다") `createWritable()` → `write()` → `close()`
+4. 없으면 (Firefox·Safari 등) 받은 본문을 Blob으로 내려받고 "저장 위치 선택을 지원하지 않는 브라우저라 내려받기 폴더에 저장했습니다" 안내. 고른 위치에 쓰지 못하면 같은 방식으로 내려받는다. 안내 문구는 화면의 `[data-save-note]` 자리에 넣는다
 - 저장 위치 선택 창은 HTTPS 또는 localhost에서만 동작한다. 공개 배포는 HTTPS 필수
 - 서버에는 파일을 남기지 않는다 (최종기획서 4-5)
 

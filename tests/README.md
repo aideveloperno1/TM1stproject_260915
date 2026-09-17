@@ -7,7 +7,7 @@
 
 ## 만들 파일
 
-개수는 매개변수화한 경우를 포함한 수집 기준이다(2026-09-17, 전체 418개). 바뀌면 `uv run pytest --collect-only -q`로 다시 센다.
+개수는 매개변수화한 경우를 포함한 수집 기준이다(2026-09-17, 전체 434개). 바뀌면 `uv run pytest --collect-only -q`로 다시 센다.
 
 | 파일 | 개수 | 대상 |
 |---|---:|---|
@@ -24,7 +24,7 @@
 | `test_evidence_summary.py` | 6 | `evidence/summary.py` |
 | `test_demo_evidence.py` | 6 | 합성 근거 파일 |
 | `test_review_rules.py` | 41 | `review/` (규칙 로드·실행·문구 검사·`llm_context`) |
-| `test_choices.py` | 19 | `choices/` |
+| `test_choices.py` | 24 | `choices/` (쓰지 않는 실행 조건 정리 포함) |
 | `test_document_describe.py` | 8 | `document/describe.py` |
 | `test_document_builder.py` | 19 | `document/builder.py` |
 | `test_document_render.py` | 11 | `document/render.py` |
@@ -39,9 +39,9 @@
 | `test_routes.py` | 10 | 1단계 입력, 단계 잠금, 정적 파일 |
 | `test_evidence_routes.py` | 13 | 2단계 화면 |
 | `test_question_routes.py` | 10 | 3단계 화면 |
-| `test_opinion_routes.py` | 22 | 3단계 AI 참고 의견 주소·모델별 캐시·모델 선택 |
-| `test_choice_routes.py` | 13 | 4단계 화면 |
-| `test_draft_routes.py` | 16 | 5단계 화면·내려받기·PDF 버튼·인쇄 CSS |
+| `test_opinion_routes.py` | 23 | 3단계 AI 참고 의견 주소·모델별 캐시·모델 선택 |
+| `test_choice_routes.py` | 17 | 4단계 화면, 원안 변경 후 재확인이 한 번만 붙고 풀림 |
+| `test_draft_routes.py` | 22 | 5단계 화면·내려받기·PDF 버튼·인쇄 CSS, 8장에 쓰지 않는 실행 조건이 남지 않음, 저장 스크립트 409 처리 |
 | `test_public_bundle.py` | 9 | `scripts/check_public_bundle.py` |
 | `test_boundaries.py` | 3 | 패키지 의존 방향 (직접 import) |
 

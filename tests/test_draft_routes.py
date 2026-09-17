@@ -203,3 +203,12 @@ def test_r04_b_keeps_entered_cycle_after_r07_is_kept_original():
     c.post("/step/4", data={"question_key": "R07", "decision": "keep_original"})
     text = c.get("/step/5/download").text
     assert "사업 기간 성과는 월 1회 주기로 별도 확인" in text
+
+
+def test_save_script_does_not_download_recheck_response():
+    # 5단계를 연 뒤 원안이 바뀌면 내려받기가 409다. 오류 문장을 .md로 저장하지 않고 안내만 한다 (6-5d)
+    script = (STATIC_DIR / "js" / "save.js").read_text(encoding="utf-8")
+    assert "response.status === 409" in script
+    assert "4단계 보완 선택으로 가서 확인한 뒤 저장해 주세요" in script
+    # 문서를 먼저 받아 확인한 뒤에만 파일로 쓴다 (주소를 바로 내려받는 방식 없음)
+    assert "link.href = url;" in script and "createObjectURL" in script

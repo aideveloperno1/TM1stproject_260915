@@ -57,7 +57,7 @@ ChoiceSet
 ### `selection.py`
 
 - `apply_choice(choice_set, outcome, single, collect_items) -> ChoiceErrors` : 오류가 없으면(빈 dict) 저장까지 한다
-- `cancel_choice(choice_set, question_key)` : 선택 삭제 → 문서에서도 해당 변경이 사라짐 (12장). 같은 묶음에 대안을 고른 선택이 더 없으면 실행 입력도 지움
+- `cancel_choice(choice_set, question_key)` : 선택 삭제 → 문서에서도 해당 변경이 사라짐 (12장). 같은 묶음에 **실행 조건을 쓰는 대안**을 채택·수정한 선택이 더 없으면 실행 입력도 지움 (`drop_unused_execution`, 6-5b). 실행 조건을 쓰는 대안 = 입력칸이 있는 대안(R07·R03·R04 A) + 문서 문장에서 `{collect_items}{owner}{cycle}{availability}`를 쓰는 대안(R04 B). 저장(원안 유지·보류·다른 대안으로 변경)과 질문 보관에서도 같은 정리를 한다
 - `pending_from_choices(choice_set, result) -> list[str]` : 보류한 질문, 실행 입력의 빈 담당자·주기·확보 여부·확보 협의 → 추가 확정 필요. 묶음 이름은 `merge_groups` 한글 이름으로 표시
 - `blocking_reasons(result, choice_set) -> list[str]` : 질문(`question`)을 고르지 않았거나 재확인 필요가 남은 경우. 안내(`notice`)는 필수가 아니다
 - 검증
@@ -70,7 +70,7 @@ ChoiceSet
 
 ### `recheck.py`
 
-- `mark_recheck(choice_set, changed_fields)`, `archive_missing(choice_set, result)`, 둘을 묶은 `sync_after_review(choice_set, result, changed_fields)` (4단계 화면이 열릴 때 호출)
+- `mark_recheck(choice_set, changed_fields)`, `archive_missing(choice_set, result)`, 둘을 묶은 `sync_after_review(choice_set, result, changed_fields)` (원안 제출마다 한 번만. `web/session.py`의 `WorkState.sync_choices()`가 4단계·5단계·내려받기 어디서든 문서를 만들기 전에 부른다, 6-5a)
 - `plan/changes.py`의 변경 필드와 규칙 JSON의 `related_fields`가 겹치는 선택만 `needs_recheck`
 - 원안 변경 후 규칙을 다시 실행해 **질문 자체가 사라진 경우**: 선택을 보관함으로 옮기고 화면에 "원안 변경으로 더 이상 해당하지 않음" 표시, 문서에는 반영하지 않음
 - `needs_recheck`가 하나라도 있으면 보완 기획안 생성을 막고 확인받는다 (11장: 최종 문서 생성 전에 확인)

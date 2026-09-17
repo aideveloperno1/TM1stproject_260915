@@ -39,7 +39,9 @@ HTTP 요청을 받아 하위 로직(`plan/`·`evidence/`·`review/`·`choices/`�
 ### `session.py` (있음)
 
 - `WorkState`: `plan`, `original`, `changed_fields`(`plan/changes.py` 결과), `choices`(`ChoiceSet`), `llm_model`(담당자가 고른 AI 모델, None이면 기본), `opinions`(모델별 AI 의견 dict)·`opinions_for`(그것을 만든 원안 스냅샷), `review_restarted`(= 바뀐 항목이 있는지)
-- `start_review()`: 원안 보관, 바뀐 항목 계산, AI 의견 캐시 비움. `cached_opinions(model)`·`remember_opinions(model, …)`: 원안이 같을 때만 그 모델의 캐시 사용, 원안이 바뀌면 모든 모델 캐시를 비움. 모델 선택은 원안이 바뀌어도 유지
+- `start_review()`: 원안 보관, 바뀐 항목 계산, AI 의견 캐시 비움, 선택 정리 표시(`choices_synced`) 초기화
+- `sync_choices(result)`: 원안 제출마다 **한 번만** 재확인 표시·사라진 질문 보관(`choices/recheck.sync_after_review`). 4단계 화면·저장·취소, 5단계 화면·전체 문서·요청서·내려받기에서 부른다. 매번 부르면 다시 저장해 푼 재확인이 또 붙어 5단계로 갈 수 없었다(6-5a)
+- `cached_opinions(model)`·`remember_opinions(model, opinions, plan)`: 원안이 같을 때만 그 모델의 캐시 사용, 원안이 바뀌면 모든 모델 캐시를 비움. `plan`(요청을 시작한 원안)이 지금 원안과 다르면 보관하지 않음(6-5c). 모델 선택은 원안이 바뀌어도 유지
 - 쿠키 `psm_session` (httponly, samesite=lax). 여러 프로세스로 띄우면 세션이 공유되지 않는다
 - 검토 결과는 저장하지 않고 요청마다 다시 계산한다 (같은 입력이면 같은 결과)
 - `SessionStore`: 메모리 dict + 락. 서버 재시작 시 초기화
