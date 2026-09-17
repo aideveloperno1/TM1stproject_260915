@@ -12,9 +12,9 @@
     {% if recheck_keys %}
       <p class="notice">원안이 바뀌어 다시 확인이 필요한 선택이 {{ recheck_keys | length }}건 있습니다: {{ recheck_keys | join(", ") }}</p>
     {% endif %}
-    {% if choice_set.archived %}
-      <p class="notice">원안 변경으로 더 이상 해당하지 않는 선택 {{ choice_set.archived | length }}건을 보관했습니다:
-        {% for item in choice_set.archived %}{{ item.choice.rule_id }}{{ ", " if not loop.last }}{% endfor %} (보완 기획안에는 반영하지 않습니다)</p>
+    {% if choice_set.last_archived %}
+      <p class="notice">원안 변경으로 더 이상 해당하지 않는 선택 {{ choice_set.last_archived | length }}건을 보관했습니다:
+        {% for item in choice_set.last_archived %}{{ item.choice.rule_id }}{{ ", " if not loop.last }}{% endfor %} (보완 기획안에는 반영하지 않습니다)</p>
     {% endif %}
     {% if not result.outcomes %}
       <p class="notice">고를 질문이 없습니다. 바로 보완 기획안을 만들 수 있습니다.</p>

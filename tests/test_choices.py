@@ -198,6 +198,12 @@ def test_sync_after_review_archives_and_marks():
     _, narrowed = review()
     sync_after_review(choice_set, narrowed, frozenset({"target"}))
     assert [a.choice.rule_id for a in choice_set.archived] == ["R03"]
+    assert [a.choice.rule_id for a in choice_set.last_archived] == ["R03"]
+
+    # 다음 원안 변경에서 보관한 것이 없으면 최근 보관 목록은 비고, 전체 기록은 남는다
+    sync_after_review(choice_set, narrowed, frozenset({"name"}))
+    assert choice_set.last_archived == []
+    assert len(choice_set.archived) == 1
     assert choice_set.get("R07").needs_recheck
 
 

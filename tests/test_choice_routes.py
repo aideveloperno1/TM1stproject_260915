@@ -184,3 +184,25 @@ def test_saving_from_a_page_opened_before_the_change_counts_as_recheck():
     # 4단계를 다시 열지 않고, 바뀌기 전에 열어 둔 화면에서 그대로 저장
     c.post("/step/4", data=ADOPT_A)
     assert c.get("/step/5", follow_redirects=False).status_code == 200
+
+
+def test_archive_notice_shows_only_the_latest_plan_change():
+    # 대상에 관광객을 넣었다 뺐다 반복해도 같은 질문이 쌓이지 않고, 관계없는 변경에는 안내가 없다 (6-5e)
+    def notice(c):
+        match = re.search(r"더 이상 해당하지 않는 선택 (\d+)건을 보관했습니다: ([^(]*)\(", text_of(c.get("/step/4").text))
+        return (match.group(1), match.group(2).strip()) if match else None
+
+    c = reviewed_client(TOURIST_FORM)
+    c.post("/step/4", data={"question_key": "R03", "decision": "keep_original"})
+    c.post("/step/1", data=VALID_FORM)
+    assert notice(c) == ("1", "R03")
+
+    c.post("/step/1", data=TOURIST_FORM)
+    c.post("/step/4", data={"question_key": "R03", "decision": "keep_original"})
+    assert notice(c) is None
+
+    c.post("/step/1", data=VALID_FORM)
+    assert notice(c) == ("1", "R03")
+
+    c.post("/step/1", data={**VALID_FORM, "name": "사업명만 바꿈"})
+    assert notice(c) is None

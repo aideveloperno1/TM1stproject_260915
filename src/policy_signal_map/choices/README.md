@@ -70,7 +70,7 @@ ChoiceSet
 
 ### `recheck.py`
 
-- `mark_recheck(choice_set, changed_fields)`, `archive_missing(choice_set, result)`, 둘을 묶은 `sync_after_review(choice_set, result, changed_fields)` (원안 제출마다 한 번만. `web/session.py`의 `WorkState.sync_choices()`가 4단계·5단계·내려받기 어디서든 문서를 만들기 전에 부른다, 6-5a)
+- `mark_recheck(choice_set, changed_fields)`, `archive_missing(choice_set, result)`, 둘을 묶은 `sync_after_review(choice_set, result, changed_fields)` (`archive_missing`은 `archived`(전체 기록)와 `last_archived`(이번 원안 변경분, 4단계 안내용)에 함께 넣는다. 원안 제출마다 한 번만. `web/session.py`의 `WorkState.sync_choices()`가 4단계·5단계·내려받기 어디서든 문서를 만들기 전에 부른다, 6-5a)
 - `plan/changes.py`의 변경 필드와 규칙 JSON의 `related_fields`가 겹치는 선택만 `needs_recheck`
 - 원안 변경 후 규칙을 다시 실행해 **질문 자체가 사라진 경우**: 선택을 보관함으로 옮기고 화면에 "원안 변경으로 더 이상 해당하지 않음" 표시, 문서에는 반영하지 않음
 - `needs_recheck`가 하나라도 있으면 보완 기획안 생성을 막고 확인받는다 (11장: 최종 문서 생성 전에 확인)

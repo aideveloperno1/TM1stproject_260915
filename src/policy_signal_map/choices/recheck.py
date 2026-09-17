@@ -31,11 +31,14 @@ def archive_missing(choice_set: ChoiceSet, result: ReviewResult) -> tuple[str, .
     """다시 실행한 검토에 없는 질문의 선택을 보관함으로 옮긴다 (조용히 사라지지 않게)."""
     current = {outcome.question_key for outcome in result.outcomes}
     archived = []
+    choice_set.last_archived = []
     for key in list(choice_set.choices):
         if key not in current:
             choice = choice_set.remove(key)
             if choice is not None:
-                choice_set.archived.append(ArchivedChoice(choice))
+                item = ArchivedChoice(choice)
+                choice_set.archived.append(item)
+                choice_set.last_archived.append(item)
                 drop_unused_execution(choice_set, choice.merge_group)
                 archived.append(key)
     return tuple(archived)

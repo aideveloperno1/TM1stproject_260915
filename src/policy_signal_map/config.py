@@ -122,8 +122,8 @@ def check_llm_data_combination(settings: Settings, is_real_evidence: bool) -> No
     """실제 분석 근거와 클라우드 LLM의 조합을 막는다 (checks.md LLM 전달 자료).
 
     is_real_evidence는 evidence.loader.is_real_evidence()로 판단한 값을 넘긴다.
-    로컬 LLM + 실제 자료는 데이터 담당 합의 전이라 여기서는 막지 않는다.
-    앱 시작 시 연결(2-1)할 때 합의 결과에 따라 차단 여부를 정한다.
+    로컬 LLM + 실제 자료는 허용한다 (사용자 결정 2026-09-17, checks.md 1장).
+    로컬 모델은 PC 밖으로 보내지 않고, 모델에는 수치 없이 규칙 결과와 상황 설명만 넘기기 때문이다 (llm/prompt.py).
     """
     if is_real_evidence and settings.llm_provider == "cloud":
         raise SettingsError(

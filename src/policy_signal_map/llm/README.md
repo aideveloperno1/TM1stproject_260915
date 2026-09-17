@@ -104,7 +104,7 @@ def get_provider(settings, model=None) -> LLMProvider | None     PSM_LLM_PROVIDE
 | 근거 자료 \ LLM | none | cloud | local |
 |---|---|---|---|
 | 합성 | 허용 | 허용 | 허용 |
-| 실제 | 허용 | **차단** (`uv run policy-signal-map`은 시작 안 함, uvicorn 직접 실행이면 근거 오류 상태) | **코드가 막지 않음.** 사용자가 필요할 때 따로 지시하기로 함 — 그 전까지 쓰지 않는다 |
+| 실제 | 허용 | **차단** (`uv run policy-signal-map`은 시작 안 함, uvicorn 직접 실행이면 근거 오류 상태) | **허용** (사용자 결정 9/17). 외부 전송 없음, 수치 없이 규칙 결과·상황 설명만 전달. 2차 연결 확인(6-1) 대조 중에는 `none`으로 끈다 |
 
 ## 의존 관계
 

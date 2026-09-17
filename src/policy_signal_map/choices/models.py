@@ -85,7 +85,11 @@ class ArchivedChoice:
 class ChoiceSet:
     choices: dict[str, Choice] = field(default_factory=dict)
     executions: dict[str, ExecutionInput] = field(default_factory=dict)
+    # 지금까지 보관한 선택 전체 (기록용)
     archived: list[ArchivedChoice] = field(default_factory=list)
+    # 가장 최근 원안 변경으로 보관한 선택. 4단계 안내는 이것만 보여 준다.
+    # 전체를 보여 주면 원안을 여러 번 바꿀 때 같은 질문이 쌓이고, 다시 답한 질문도 계속 보관됐다고 나온다 (6-5e)
+    last_archived: list[ArchivedChoice] = field(default_factory=list)
 
     def get(self, question_key: str) -> Choice | None:
         return self.choices.get(question_key)
