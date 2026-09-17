@@ -1,29 +1,40 @@
-# evidence/ — 분석 근거 파일 읽기·검증, 금액·비중 비교 계산
+# `evidence/` — 데이터 담당이 준 근거 파일 읽기·검사·비교 계산
 
-## 역할
+> 최신화: 2026-09-17
 
-데이터 분석 담당이 만든 `review_evidence.json`을 읽어 형식·상태값·수치 관계를 검증하고, 인접 월의 **비교 A(외국인 금액 vs 전체 분모 비중)**와 **비교 B(전체 분모 비중 vs 미상 제외 비중)**를 계산한다.
-화면·규칙·LLM과 무관한 순수 계산 계층이다. 숫자를 보정하거나 새로 만들지 않는다.
+## 이 폴더는 무엇인가
 
-## 기준 문서
+데이터 분석 담당이 카드 소비데이터로 만든 **근거 파일**을 읽어, 형식이 약속대로인지·숫자끼리 맞는지 검사하는 곳입니다.
+그다음 **이웃한 두 달을 비교**해 "외국인 결제금액은 늘었는데 비중은 줄었는가" 같은 방향 차이를 계산합니다.
+숫자를 고치거나 새로 만들지 않고, 화면·규칙·AI와 상관없이 계산만 합니다. 실제 수치가 오류 문구로 새지 않도록 값 대신 형식만 알려 줍니다.
+
+## 파일 목록
+
+| 파일 | 하는 일 (쉬운 말) | 언제 보거나 고치나 |
+|---|---|---|
+| `__init__.py` | 이 폴더를 파이썬 묶음으로 인식시키는 빈 파일 | 고칠 일 없음 |
+| `schema.py` | **근거 파일의 약속된 모양**(어떤 칸이 있고 어떤 값이 허용되는지)을 적어 두고, 받은 파일이 그 약속을 지켰는지 하나하나 검사 | 데이터 담당과 파일 형식을 바꾸기로 했을 때 |
+| `loader.py` | 파일을 열어 읽고 검사를 부름. **실제 자료인지 가짜(합성) 자료인지 판단**하고, 원하는 지역 범위의 자료를 찾음 | 실제 자료 판단 기준이나 파일 읽는 방식을 바꿀 때 |
+| `compare.py` | **이웃한 두 달 비교 계산.** 금액 방향과 비중 방향이 서로 다른지(비교 A), 미상 포함·제외 비중 방향이 다른지(비교 B) | 비교 방법을 바꿀 때 (워크플로우 8장과 함께) |
+| `summary.py` | 여러 달을 **합산한 기간 비중**과 "비교할 수 있는 구간 몇 개 중 방향이 다른 구간 몇 개" 같은 **개수 요약** | 요약 항목을 늘릴 때 |
+
+---
+
+## 자세한 설명 (개발자용)
+
+### 역할 요약
+
+`review_evidence.json`을 읽어 형식·상태값·수치 관계를 검증하고, 인접 월의 **비교 A(외국인 금액 vs 전체 분모 비중)**와 **비교 B(전체 분모 비중 vs 미상 제외 비중)**를 계산한다. 화면·규칙·LLM과 무관한 순수 계산 계층이다.
+
+### 기준 문서
 
 - 워크플로우 8-1 F·T·U 정의, 8-2 두 종류의 비교, 8-3 작은 차이 표시, 8-4 전국 우선·시도 조건부, 8-5 검증 예시
 - 워크플로우 9-1 `calculation_status`, 9-2 `applicability`, 9-3 파일 형식
 - 워크플로우 12장 시험 항목 중 서비스 담당분
 
-## 만들 파일
+### 파일별 상세
 
-| 파일 | 상태 | 내용 |
-|---|---|---|
-| `__init__.py` | 있음 | 비어 있음 |
-| `schema.py` | 있음 | 근거 파일 데이터 형태와 검증 (`parse_evidence`) |
-| `loader.py` | 있음 | 파일 읽기, 실제 자료 판단, 레코드 찾기 |
-| `compare.py` | 있음 | 비교 A/B, 방향, opposite, 증감률 (`compare_record`, `compare_months`) |
-| `summary.py` | 있음 | 기간 합산 비중, 구간 수 요약 (`period_totals`, `summarize_pairs`) |
-
-## 파일별 상세
-
-### `schema.py`
+#### `schema.py`
 
 워크플로우 9-3장 형식을 그대로 옮긴 dataclass. 필드명은 JSON과 같게 둔다 (데이터 담당과 대조하기 쉽게).
 
@@ -35,7 +46,7 @@ EvidenceFile
 
 EvidenceRecord
   evidence_id: str               파일 안에서 중복 금지
-  data_kind: "synthetic" | "real"
+  data_kind: "synthetic" | "real"   다른 값은 오류. 서비스는 synthetic이 아니면 실제 자료로 취급
   scope: Scope
     geographic_scope: "national" | "sido"
     region_key: "ALL" | 시도 고정 키     national이면 반드시 ALL
@@ -78,14 +89,14 @@ MonthValue
 
 오류 문구 형식: `[레코드 ID / 월 / 필드] 내용`. **금액·건수·비중 필드는 값을 출력하지 않고 형식(정수·소수·글자 등)만** 적는다. 실제 파일 오류가 화면·로그로 옮겨질 때 카드 수치가 새지 않게 하기 위해서다.
 
-### `loader.py`
+#### `loader.py`
 
 - `load_evidence(path) -> LoadResult(file, warnings, source_path)`: 파일 읽기(UTF-8, BOM 허용, NaN·Infinity 거부) → `parse_evidence`. 실패 시 `EvidenceError(messages, path)`
-- `find_record(file, geographic_scope, region_key)`: 요청한 범위가 없으면 None. **전국 자료로 자동 대체하지 않는다** (9-3장). 입력 화면 행정코드와 `region_key`의 연결 규칙은 2-3 전에 정한다
+- `find_record(file, geographic_scope, region_key)`: 요청한 범위가 없으면 None. **전국 자료로 자동 대체하지 않는다** (9-3장). 입력 화면 행정코드와 `region_key`의 연결 규칙은 아직 정하지 않았다 (지역 연결 규칙 C-2 결정 대기, 지금은 전국 레코드만 사용)
 - `has_real_records(file)`, `is_real_evidence(path, file)`: **경로에 `private` 폴더·이름에 `_real_`이 있거나**, 레코드의 `data_kind`가 `synthetic`이 아니면 실제 자료로 본다. 파일이 검증에 실패했으면 `raw_marks_real(path)`가 원문의 `data_kind`를 찾아 같은 기준으로 본다(예: `actual_internal` — 2026-09-17 임시본 점검에서 알아보지 못하던 경우). `config.check_llm_data_combination`에 넘긴다
 - 파일 경로는 `config.py`에서 받는다. 이 모듈은 캐시하지 않으며, 앱 시작 시 한 번 읽어 보관하는 것은 web 계층(2-1)의 몫이다
 
-### `compare.py`
+#### `compare.py`
 
 인접 월 0 → 1 쌍마다 계산한다. **정수 연산과 `fractions.Fraction`만 사용**하고 float는 표시 직전에만 쓴다.
 
@@ -126,20 +137,20 @@ DirectionComparison
 | 반올림한 퍼센트로 방향을 판단하지 않는다 | 8-2 |
 | 자료 범위·버전이 다른 레코드끼리 비교하지 않는다 | 8-2 |
 
-### `summary.py`
+#### `summary.py`
 
 - `period_totals(record) -> PeriodTotals` : `ok` 월의 F·T·U를 **각각 합산한 뒤** 기간 비중 계산 (8-1장). 제외한 월 목록 포함
-- `pair_summary(pairs) -> PairSummary` : 전체 구간 수, 비교 가능 구간 수, 비교 A 반대 방향 구간 수, 같은 방향 구간 수, 보류 구간 수
+- `summarize_pairs(pairs) -> PairSummary` : 전체 구간 수, 비교 가능 구간 수, 비교 A 반대 방향 구간 수, 같은 방향 구간 수, 보류 구간 수
 - 규칙·화면·문서가 "5개 구간 중 N개" 같은 문장을 만들 때 이 결과만 사용한다. 문장을 만들지는 않는다 (문장은 `review/`·`web/`)
 - 반대 방향 구간만 골라 반환하는 함수는 만들지 않는다 (8-3장: 반대 방향 구간만 골라 보여주지 않음)
 
-## 의존 관계
+### 의존 관계
 
 - 가져다 쓰는 곳: 표준 라이브러리만 (`json`, `dataclasses`, `fractions`)
 - 이 폴더를 쓰는 곳: `review/`, `document/`, `web/`, `scripts/build_demo_evidence.py`
 - 쓰면 안 되는 곳: `llm/` (카드 수치 차단), `web/`·FastAPI import 금지
 
-## 테스트
+### 테스트
 
 | 테스트 파일 | 확인 내용 | 워크플로우 |
 |---|---|---|

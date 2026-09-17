@@ -1,31 +1,38 @@
-# review/ — 검토 규칙 실행 (S02)
+# `review/` — 검토 규칙을 실행해 질문 만들기
 
-## 역할
+> 최신화: 2026-09-17
 
-기획 원안(`plan/`)과 분석 근거(`evidence/`)를 받아 규칙 R01~R07을 실행하고, 화면에 보여줄 **검토 결과(질문·근거·대안)**를 만든다.
-판정·점수를 내지 않는다. 관측은 질문으로 전달하고 결정은 담당자가 한다.
+## 이 폴더는 무엇인가
 
-## 기준 문서
+3단계 **검토 질문** 화면에 나올 내용을 만드는 곳입니다. 담당자가 입력한 기획안과 데이터 담당의 근거를 보고, 규칙(R01~R07)마다 **담당자에게 물어볼 질문, 그 이유, 고를 수 있는 보완 방법**을 정합니다.
+서비스는 판정하거나 점수를 매기지 않습니다. 관측한 내용은 질문으로 전달하고, 결정은 4단계에서 담당자가 합니다.
+질문 문장과 보완 방법의 글은 `resources/rules/` 파일에 있고, 이 폴더는 **언제 어떤 문장을 쓸지 판단**만 합니다.
+
+## 파일 목록
+
+| 파일 | 하는 일 (쉬운 말) | 언제 보거나 고치나 |
+|---|---|---|
+| `__init__.py` | 이 폴더를 파이썬 묶음으로 인식시키는 빈 파일 | 고칠 일 없음 |
+| `rules.py` | **규칙 문구 파일을 읽고 검사.** 질문 문장, 보완 방법, 문서에 들어갈 문장, AI에게 줄 상황 설명을 꺼내 줌. 판정 단어(문제·오류 등)를 쓰지 않았는지도 확인 | 규칙 문구 파일의 형식을 바꿀 때 |
+| `outcome.py` | **검토 결과의 모양**을 정함: 질문 / 참고 안내 / 추가 확정 필요 / 자료 부족으로 보류, 그리고 "확인했으나 해당 없음"과 "검토하지 않음"의 구분. AI에게 넘길 수치 없는 요약도 만듦 | 결과에 새 정보를 담아야 할 때 |
+| `context.py` | 어떤 근거(지금은 전국)를 쓸지 고르고, "전국 참고 — 특정 지역의 진단이 아님" 같은 **범위 안내 문구**를 붙임. 2단계 화면도 함께 씀 | 지역별 근거를 쓰기 시작할 때 |
+| `r07_indicator.py` | 핵심 규칙 **R07(금액·비중과 성과지표 확인)** 판단. 근거가 부족하면 보류, 지표를 참고로만 쓰면 안내, 직접 평가에 쓰면 질문 | R07 조건을 바꿀 때 |
+| `basic_checks.py` | 입력 내용만으로 판단하는 **기본 규칙 R01·R03·R04·R05** (사용처, 대상과 자료, 기간, 빠진 운영 조건) | 기본 규칙 조건을 바꿀 때 |
+| `engine.py` | 규칙을 **정해진 순서로 실행**하고, 같은 정보를 묻는 질문끼리 서로 가리키게 연결. 규칙 파일과 코드가 어긋나면 앱이 켜지지 않게 막음 | 규칙을 추가하거나 실행 순서를 바꿀 때 |
+
+---
+
+## 자세한 설명 (개발자용)
+
+### 기준 문서
 
 - 워크플로우 11장 검토 규칙과 문서 반영, S02 조회와 질문
 - 최종기획서 4-3 서비스가 묻는 질문, 4-4 선택할 보완 방법, 5장 추가 사례, 11장 구현 범위
 - checks.md: R07 검토 구현, R01·R03·R04·R05 기본 검토, R06 분석 예시, R02 향후 기능
 
-## 만들 파일
+### 파일별 상세
 
-| 파일 | 상태 | 내용 |
-|---|---|---|
-| `__init__.py` | 있음 | 비어 있음 |
-| `rules.py` | 있음 | 규칙 원본 JSON v1.0 읽기·검증 (문구·대안·대안별 문서 문장·묶음 이름·재확인 필드·AI용 상황 설명) |
-| `outcome.py` | 있음 | 검토 결과 형태, `no_finding`·`not_reviewed` 구분, `to_llm_summary()` |
-| `context.py` | 있음 | 전국 레코드 선택·범위 표시·지역 안내 (2단계 화면과 공용) |
-| `r07_indicator.py` | 있음 | R07 금액·비중과 성과지표 |
-| `basic_checks.py` | 있음 | R01·R03·R04·R05 기본 검토 |
-| `engine.py` | 있음 | 실행 순서, 규칙 ID·함수 일치 검사, 같은 merge_group 질문 연결 |
-
-## 파일별 상세
-
-### `rules.py` (있음)
+#### `rules.py`
 
 - `load_rule_catalog()` → `RuleInfo(id, title, scope, summary, messages, options, related_fields, document_targets, merge_group, llm_context)`, `rules_by_id()`, `get_rule(id)`
 - `OptionSpec(id, title, where, need, load, execution_fields, document)`, `OptionDocument(section, mode, lines, replace_key, appendix)`
@@ -36,7 +43,7 @@
 - **문구·대안·문서 반영 위치는 JSON이 원본**, **조건 판단은 코드**(규칙 ID별 함수)가 맡는다
 - 시작 시 검사: `engine.py`를 불러올 때 `check_rule_functions()`가 한 번 실행된다. `scope`가 implement/basic인데 실행 함수가 없으면 **앱이 시작하지 않는다** (화면을 여는 순간 500이 나지 않게). 요청 처리 중에는 다시 검사하지 않는다
 
-### `outcome.py`
+#### `outcome.py`
 
 ```
 ReviewOutcome
@@ -68,7 +75,7 @@ ReviewResult(outcomes, no_finding, not_reviewed, evidence_id)
 - `evidence_ids`는 소비데이터를 쓰는 R07 결과에만 붙는다. R01·R03·R04·R05는 입력 항목만으로 판단하므로 비어 있다
 - `llm/`에 넘길 때는 `to_llm_summary()`로 수치 없는 요약만 만든다: 규칙 ID, kind, 제목, 근거 유무, 적용 범위 라벨, 관련 규칙, `context`(`context_keys`로 찾은 `llm_context` 문장)
 
-### `r07_indicator.py`
+#### `r07_indicator.py`
 
 최종기획서 4장 첫 사례의 핵심 규칙.
 
@@ -100,7 +107,7 @@ ReviewResult(outcomes, no_finding, not_reviewed, evidence_id)
 - D 정밀 BC 분석 요청서 초안 (계약·제공 확정처럼 표시 금지)
 - 공통: 원안 유지, 보류
 
-### `basic_checks.py`
+#### `basic_checks.py`
 
 조건은 초안이며 `docs/review_rules.md`에서 데이터 담당과 확정한다.
 
@@ -115,7 +122,7 @@ ReviewResult(outcomes, no_finding, not_reviewed, evidence_id)
 - R02 → `not_reviewed` "지역 기준 확인 후 적용". **시도 근거가 allowed여도 자동 활성화하지 않는다** (8-4장)
 - 사용자가 입력하지 않은 사실을 추정해 지적하지 않는다
 
-### `engine.py`
+#### `engine.py`
 
 - `run_review(plan, evidence) -> ReviewResult(outcomes, no_finding, not_reviewed, evidence_id)`
 - 실행 순서: `RUN_ORDER = ("R07", "R03", "R04", "R01", "R05")` → R06·R02는 `not_reviewed`로 표시
@@ -124,15 +131,15 @@ ReviewResult(outcomes, no_finding, not_reviewed, evidence_id)
 - 결과에 "검토한 규칙 / 검토하지 않은 규칙"을 모두 담는다 (시안: '문제없음'과 '검토하지 않음' 구분)
 - 같은 입력·같은 근거 파일이면 항상 같은 결과 (난수·시간 의존 금지)
 
-## 의존 관계
+### 의존 관계
 
 - 가져다 쓰는 곳: `plan/`, `evidence/`, `resources/rules/`
 - 이 폴더를 쓰는 곳: `choices/`, `document/`, `web/`, `llm/`(요약만)
 - 쓰면 안 되는 것: `web/`, FastAPI
 
-## 테스트
+### 테스트
 
-`tests/test_review_rules.py` (있음)
+`tests/test_review_rules.py`
 
 | 확인 | 워크플로우 12장 |
 |---|---|

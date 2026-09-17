@@ -1,28 +1,35 @@
-# choices/ — 보완 선택과 실행 조건 (S03)
+# `choices/` — 담당자가 고른 보완 방법 보관
 
-## 역할
+> 최신화: 2026-09-17
 
-검토 결과(`review/`)의 질문마다 담당자가 고른 결정(원안 유지·채택·수정·보류)과 실행 조건 입력을 보관하고 검증한다.
-원안이 바뀌면 영향받는 선택을 "재확인 필요"로 되돌린다. 서비스가 대신 고르지 않는다.
+## 이 폴더는 무엇인가
 
-## 기준 문서
+4단계 **보완 선택** 화면에서 담당자가 질문마다 고른 결정(원안 유지·채택·수정·보류)과 실행 조건(무슨 자료를, 누가, 얼마나 자주 모을지)을 **보관하고 확인**하는 곳입니다.
+담당자가 원안을 고쳐 다시 제출하면, 바뀐 칸과 관련된 선택만 "다시 확인 필요"로 돌려놓고 더 이상 해당하지 않는 질문의 선택은 따로 보관합니다.
+서비스가 대신 고르지 않습니다.
+
+## 파일 목록
+
+| 파일 | 하는 일 (쉬운 말) | 언제 보거나 고치나 |
+|---|---|---|
+| `__init__.py` | 이 폴더를 파이썬 묶음으로 인식시키는 빈 파일 | 고칠 일 없음 |
+| `models.py` | **선택 한 건의 모양**(결정, 고른 대안, 고친 문장, 이유)과 실행 조건, 전체 선택 보관함을 정함 | 선택에 새 정보를 담아야 할 때 |
+| `selection.py` | 선택을 **저장·취소하고 올바른지 확인**. 비어 있는 담당자·주기 같은 "추가 확정 필요" 목록과, 5단계로 넘어가지 못하는 이유를 만듦 | 선택 확인 규칙이나 5단계 진입 조건을 바꿀 때 |
+| `recheck.py` | 원안이 바뀌었을 때 **관련된 선택만 다시 확인 필요로 표시**하고, 사라진 질문의 선택은 보관함으로 옮김 | 다시 확인 조건을 바꿀 때 |
+
+---
+
+## 자세한 설명 (개발자용)
+
+### 기준 문서
 
 - 워크플로우 S03 보완 선택, S05 수정·출력, 11장 (재확인), 12장 (목표 유지·대안 취소, 목표·지역 변경)
 - 최종기획서 3장 3~4단계, 4-4 선택할 보완 방법, 9장 (BC 제휴를 선택하지 않아도 기본 검토 제공)
 - checks.md: 시안의 A~D 대안 + 원안 유지·보류 + 수정, "실행 조건"은 보완 선택 화면의 추가 입력 칸
 
-## 만들 파일
+### 파일별 상세
 
-| 파일 | 상태 | 내용 |
-|---|---|---|
-| `__init__.py` | 있음 | 비어 있음 |
-| `models.py` | 있음 | `Decision`(원안 유지·채택·수정·보류), `ExecutionInput`(merge_group 공유), `Choice`, `ChoiceSet`(보관함 포함) |
-| `selection.py` | 있음 | 적용·취소·검증, 추가 확정 필요 목록, 5단계 차단 사유 |
-| `recheck.py` | 있음 | 관련 항목이 바뀐 선택만 재확인, 사라진 질문의 선택 보관 |
-
-## 파일별 상세
-
-### `models.py`
+#### `models.py`
 
 ```
 Decision = "keep_original" | "adopt" | "modify" | "hold"      (화면 라벨: 원안 유지·채택·수정·보류)
@@ -50,11 +57,12 @@ ExecutionInput (frozen)            실행 조건이 있는 대안(R07·R03·R04�
 ChoiceSet
   choices: dict[question_key, Choice]
   executions: dict[merge_group, ExecutionInput]    같은 묶음 질문이 공유. 마지막 저장값으로 덮어씀
-  archived: list[ArchivedChoice]                   원안 변경으로 사라진 질문의 선택
+  archived: list[ArchivedChoice]                   원안 변경으로 사라진 질문의 선택 (전체 기록)
+  last_archived: list[ArchivedChoice]              가장 최근 원안 변경으로 보관한 선택. 4단계 안내는 이것만 보여 줌 (6-5e)
   needs_recheck_keys (속성)
 ```
 
-### `selection.py`
+#### `selection.py`
 
 - `apply_choice(choice_set, outcome, single, collect_items) -> ChoiceErrors` : 오류가 없으면(빈 dict) 저장까지 한다
 - `cancel_choice(choice_set, question_key)` : 선택 삭제 → 문서에서도 해당 변경이 사라짐 (12장). 같은 묶음에 **실행 조건을 쓰는 대안**을 채택·수정한 선택이 더 없으면 실행 입력도 지움 (`drop_unused_execution`, 6-5b). 실행 조건을 쓰는 대안 = 입력칸이 있는 대안(R07·R03·R04 A) + 문서 문장에서 `{collect_items}{owner}{cycle}{availability}`를 쓰는 대안(R04 B). 저장(원안 유지·보류·다른 대안으로 변경)과 질문 보관에서도 같은 정리를 한다
@@ -68,22 +76,22 @@ ChoiceSet
   - 옵션 D는 "요청서 초안" 상태로만 저장. 계약·제공 확정 필드를 두지 않는다 (S03)
 - 선택하지 않은 질문은 `keep_original`로 간주하지 않는다. "미선택"으로 남겨 기획안 생성 전에 확인받는다
 
-### `recheck.py`
+#### `recheck.py`
 
 - `mark_recheck(choice_set, changed_fields)`, `archive_missing(choice_set, result)`, 둘을 묶은 `sync_after_review(choice_set, result, changed_fields)` (`archive_missing`은 `archived`(전체 기록)와 `last_archived`(이번 원안 변경분, 4단계 안내용)에 함께 넣는다. 원안 제출마다 한 번만. `web/session.py`의 `WorkState.sync_choices()`가 4단계·5단계·내려받기 어디서든 문서를 만들기 전에 부른다, 6-5a)
 - `plan/changes.py`의 변경 필드와 규칙 JSON의 `related_fields`가 겹치는 선택만 `needs_recheck`
 - 원안 변경 후 규칙을 다시 실행해 **질문 자체가 사라진 경우**: 선택을 보관함으로 옮기고 화면에 "원안 변경으로 더 이상 해당하지 않음" 표시, 문서에는 반영하지 않음
 - `needs_recheck`가 하나라도 있으면 보완 기획안 생성을 막고 확인받는다 (11장: 최종 문서 생성 전에 확인)
 
-## 의존 관계
+### 의존 관계
 
 - 가져다 쓰는 곳: `plan/`, `review/`
 - 이 폴더를 쓰는 곳: `document/`, `web/`
 - 쓰면 안 되는 것: `web/`, FastAPI, `evidence/` 직접 계산 (근거는 review 결과로만 받음)
 
-## 테스트
+### 테스트
 
-`tests/test_choices.py` (있음), `tests/test_choice_routes.py` (있음)
+`tests/test_choices.py`, `tests/test_choice_routes.py`
 
 | 확인 | 워크플로우 12장 |
 |---|---|
