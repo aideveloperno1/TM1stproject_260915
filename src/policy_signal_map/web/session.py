@@ -12,9 +12,11 @@ from dataclasses import dataclass, field
 from threading import Lock
 
 from ..choices.models import ChoiceSet
+from ..choices.recheck import sync_after_review
 from ..llm.opinions import OpinionSet
 from ..plan.changes import diff_plan
 from ..plan.models import PlanInput
+from ..review.outcome import ReviewResult
 
 COOKIE_NAME = "psm_session"
 
@@ -36,6 +38,9 @@ class WorkState:
     # 모델을 바꿨다가 돌아오면 앞서 받은 의견을 다시 쓴다 (모델 호출이 느리기 때문)
     opinions: dict[str, OpinionSet] = field(default_factory=dict)
     opinions_for: PlanInput | None = None
+    # 이번 원안에 대해 선택 정리(재확인 표시·사라진 질문 보관)를 마쳤는지.
+    # 원안을 제출할 때마다 한 번만 한다. 매번 하면 다시 저장해 푼 재확인 표시가 또 붙는다 (6-5a)
+    choices_synced: bool = False
 
     @property
     def review_restarted(self) -> bool:
@@ -44,8 +49,15 @@ class WorkState:
     def start_review(self) -> None:
         self.changed_fields = diff_plan(self.original, self.plan)
         self.original = deepcopy(self.plan)
+        self.choices_synced = False
         self.opinions = {}
         self.opinions_for = None
+
+    def sync_choices(self, result: ReviewResult) -> None:
+        """원안이 바뀐 뒤 선택을 정리한다. 4단계·5단계·내려받기 어디로 먼저 가도 문서를 만들기 전에 거친다."""
+        if not self.choices_synced:
+            sync_after_review(self.choices, result, self.changed_fields)
+            self.choices_synced = True
 
     def cached_opinions(self, model: str) -> OpinionSet | None:
         """이번 원안으로 이 모델이 만든 의견만 다시 쓴다."""

@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, Response
 
 from ...choices.models import AVAILABILITY_LABELS, DECISION_LABELS, Availability, Decision
-from ...choices.recheck import sync_after_review
 from ...choices.selection import apply_choice, blocking_reasons, cancel_choice, pending_from_choices
 from ...review.engine import run_review
 from ..dependencies import evidence_state_dep, session_dep
@@ -22,7 +21,7 @@ Evidence = Annotated[EvidenceState, Depends(evidence_state_dep)]
 
 def _context(state: WorkState, evidence: EvidenceState, errors: dict[str, str] | None = None, key: str = ""):
     result = run_review(state.original, evidence.result)
-    sync_after_review(state.choices, result, state.changed_fields)
+    state.sync_choices(result)
     return {
         "result": result,
         "choice_set": state.choices,
@@ -60,6 +59,8 @@ async def save(request: Request, session: Session, evidence: Evidence) -> Respon
     question_key = single.get("question_key", "")
 
     result = run_review(state.original, evidence.result)
+    # 원안이 바뀌기 전에 열어 둔 화면에서 저장해도, 정리를 먼저 해야 이 저장이 재확인을 푼 상태로 남는다
+    state.sync_choices(result)
     outcome = result.by_key(question_key)
     if outcome is None:
         return redirect("/step/4", session_id)
@@ -72,10 +73,12 @@ async def save(request: Request, session: Session, evidence: Evidence) -> Respon
 
 
 @router.post("/step/4/cancel")
-async def cancel(request: Request, session: Session) -> Response:
+async def cancel(request: Request, session: Session, evidence: Evidence) -> Response:
     session_id, state = session
     if state.original is None:
         return redirect("/step/1", session_id)
+    if evidence.ok and evidence.result is not None:
+        state.sync_choices(run_review(state.original, evidence.result))
     form = await request.form()
     question_key = form.get("question_key")
     if isinstance(question_key, str):

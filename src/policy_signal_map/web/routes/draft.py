@@ -24,6 +24,8 @@ Evidence = Annotated[EvidenceState, Depends(evidence_state_dep)]
 
 def _document(state: WorkState, evidence: EvidenceState) -> PlanDocument | DocumentBlocked:
     result = run_review(state.original, evidence.result)
+    # 4단계를 거치지 않고 와도 원안 변경 후 재확인이 빠지지 않게 한다 (6-5a)
+    state.sync_choices(result)
     return build_document(state.original, result, state.choices, evidence.result, date.today())
 
 

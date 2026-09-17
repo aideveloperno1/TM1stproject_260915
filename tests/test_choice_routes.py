@@ -140,3 +140,47 @@ def test_step_four_has_no_score_or_warning_wording():
     html = reviewed_client().get("/step/4").text
     for word in ("점수", "성공 확률", "danger", "text-warn"):
         assert word not in text_of(html).replace("성공 확률이나 점수를 표시하지 않습니다", "")
+
+
+# ---------------------------------------------------------------- 원안 변경 후 선택 정리 (6-5a)
+
+CHANGED_FORM = {**VALID_FORM, "metrics": ["foreign_amount"]}
+
+
+def test_saving_again_clears_recheck_and_opens_step_five():
+    c = reviewed_client()
+    c.post("/step/4", data=ADOPT_A)
+    c.post("/step/1", data=CHANGED_FORM)
+    assert "다시 확인이 필요합니다" in text_of(c.get("/step/4").text)
+
+    c.post("/step/4", data=ADOPT_A)
+    assert "다시 확인이 필요합니다" not in text_of(c.get("/step/4").text)
+    assert c.get("/step/5", follow_redirects=False).status_code == 200
+
+
+def test_step_five_without_step_four_still_asks_for_recheck():
+    c = reviewed_client()
+    c.post("/step/4", data=ADOPT_A)
+    c.post("/step/1", data=CHANGED_FORM)
+
+    response = c.get("/step/5", follow_redirects=False)
+    assert response.status_code == 303 and response.headers["location"] == "/step/4"
+    assert "다시 확인이 필요합니다" in text_of(c.get("/step/4").text)
+
+
+def test_download_without_step_four_is_blocked_after_plan_change():
+    c = reviewed_client()
+    c.post("/step/4", data=ADOPT_A)
+    c.post("/step/1", data=CHANGED_FORM)
+    response = c.get("/step/5/download")
+    assert response.status_code == 409
+    assert "다시 확인이 필요합니다" in response.text
+
+
+def test_saving_from_a_page_opened_before_the_change_counts_as_recheck():
+    c = reviewed_client()
+    c.post("/step/4", data=ADOPT_A)
+    c.post("/step/1", data=CHANGED_FORM)
+    # 4단계를 다시 열지 않고, 바뀌기 전에 열어 둔 화면에서 그대로 저장
+    c.post("/step/4", data=ADOPT_A)
+    assert c.get("/step/5", follow_redirects=False).status_code == 200
