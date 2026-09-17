@@ -19,7 +19,7 @@
 | `alternatives_comparison.md` | 예정 | 개발 작성 → 데이터 검수 | 9/19~20 |
 | `usage_guide.md` | 예정 | 개발 | 9/19~20 |
 | `submission_outline.md` | 예정 | 개발 작성 → 공동 검토 | 9/19~20 |
-| `screenshots/` (폴더) | 예정 | 개발 | 9/19~20, 합성 화면만 |
+| `screenshots/` (폴더) | 있음 (9/17, 6장. `05_saved_markdown.png`는 사용자 캡처 대기) | 개발 | 9/19~20, 합성 화면만 |
 
 ## 파일별 상세
 

@@ -13,6 +13,7 @@
 | `build_fixtures.py` | 있음 | 테스트 경계 사례를 바꿀 때 |
 | `build_demo_evidence.py` | 있음 | 합성 근거 파일 형식·시나리오를 바꿀 때 |
 | `check_public_bundle.py` | 있음 | 매 푸시·배포 전 |
+| `capture_screenshots.py` | 있음 | 화면이 바뀌어 `docs/screenshots/`를 다시 찍을 때 |
 
 ## 파일별 상세
 
@@ -64,3 +65,16 @@
 
 - 스크립트는 `src/policy_signal_map`의 함수를 가져다 쓸 수 있지만, 서비스 코드가 스크립트를 가져다 쓰지는 않는다.
 - 스크립트가 만든 결과 파일도 커밋 전에 `check_public_bundle.py`를 통과해야 한다.
+
+### `capture_screenshots.py` (있음)
+
+`docs/screenshots/` 이름 규칙대로 제출·사용법용 캡처 6장을 만든다(2026-09-17).
+
+- 실행: `uv run python scripts/capture_screenshots.py` (AI 참고 의견 포함) · `--no-ai` · `--chrome <경로>` · `--models` · `--out`
+- **합성 자료만:** 셸의 `PSM_` 환경변수를 모두 비우고 서버를 따로 띄운다. 캡처 전마다 상단 표시가 "시연용 합성 수치"인지 확인하고 아니면 종료한다
+- 창 없는 Chrome(임시 프로필, 끝나면 삭제)을 Chrome DevTools Protocol로 조작한다. 예시 기획 채우기 → 검토 시작 → 4단계 R07 대안 A 입력·저장 → 5단계 순서로 실제 화면을 거친다
+- 전체 페이지는 화면 높이를 페이지 높이로 키우고 3초 기다린 뒤 찍는다. 화면 밖까지 한 번에 찍는 옵션을 쓰면 차트가 다시 그려지는 중에 찍혀 막대·선이 왼쪽에 뭉쳤다
+- 페이지 콘솔 오류가 있으면 파일은 남기고 종료 코드 1
+- `websockets`는 `uvicorn[standard]`와 함께 설치된 패키지를 쓴다(실행 의존성을 따로 늘리지 않음). 없으면 `uv sync` 안내 후 종료
+- 테스트는 없다. 캡처를 바꾸면 이미지를 직접 열어 확인한다
+
