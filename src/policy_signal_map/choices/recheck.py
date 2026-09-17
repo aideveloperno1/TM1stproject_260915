@@ -10,6 +10,7 @@ from dataclasses import replace
 from ..review.outcome import ReviewResult
 from ..review.rules import rules_by_id
 from .models import ArchivedChoice, ChoiceSet
+from .selection import drop_unused_execution
 
 
 def mark_recheck(choice_set: ChoiceSet, changed_fields: frozenset[str]) -> tuple[str, ...]:
@@ -35,6 +36,7 @@ def archive_missing(choice_set: ChoiceSet, result: ReviewResult) -> tuple[str, .
             choice = choice_set.remove(key)
             if choice is not None:
                 choice_set.archived.append(ArchivedChoice(choice))
+                drop_unused_execution(choice_set, choice.merge_group)
                 archived.append(key)
     return tuple(archived)
 

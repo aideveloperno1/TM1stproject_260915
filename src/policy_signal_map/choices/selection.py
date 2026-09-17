@@ -7,12 +7,15 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from string import Formatter
 
 from ..review.outcome import ReviewOutcome, ReviewResult
-from ..review.rules import merge_group_label
+from ..review.rules import OptionSpec, merge_group_label, rules_by_id
 from .models import Availability, Choice, ChoiceSet, Decision, ExecutionInput
 
 REQUIRED_EXECUTION_FIELD = "collect_items"
+# 문서 문장에서 공유 실행 조건 값을 쓰는 자리 (document/builder.py _values)
+EXECUTION_PLACEHOLDERS = frozenset({"collect_items", "availability", "owner", "cycle"})
 
 
 class ChoiceErrors(dict[str, str]):
@@ -100,18 +103,48 @@ def apply_choice(
             needs_recheck=False,
         )
     )
+    # 원안 유지·보류로 바꾸거나 실행 조건이 없는 대안으로 바꾸면 더 쓰지 않는 조건을 정리한다
+    drop_unused_execution(choice_set, outcome.merge_group)
     return errors
+
+
+def uses_execution(option: OptionSpec) -> bool:
+    """공유 실행 조건을 쓰는 대안인지.
+
+    입력칸이 있는 대안(R07·R03·R04의 A)뿐 아니라, 입력칸은 없어도 문서 문장에서 그 값을 가져다 쓰는 대안
+    (R04 B의 "{cycle} 주기로 별도 확인")도 포함한다. 담당자가 입력한 값을 문서가 아직 쓰는 동안 지우지 않기 위해서다.
+    """
+    if option.execution_fields:
+        return True
+    lines = option.document.lines if option.document else ()
+    return any(
+        field in EXECUTION_PLACEHOLDERS for line in lines for _, field, _, _ in Formatter().parse(line) if field
+    )
+
+
+def drop_unused_execution(choice_set: ChoiceSet, merge_group: str | None) -> None:
+    """묶음 안에 실행 조건을 쓰는 대안을 채택·수정한 선택이 하나도 없으면 실행 조건을 지운다.
+
+    남겨 두면 문서 8장에 쓰지 않는 조건의 "추가 확정 필요"가 실린다 (6-5b: 질문이 사라졌을 때,
+    채택을 원안 유지로 바꿨을 때, 대안 A를 B로 바꿨을 때 재현).
+    """
+    if not merge_group or merge_group not in choice_set.executions:
+        return
+    rules = rules_by_id()
+    for choice in choice_set.choices.values():
+        if choice.merge_group != merge_group or not choice.changes_document or not choice.option_id:
+            continue
+        option = rules[choice.rule_id].option(choice.option_id)
+        if option is not None and uses_execution(option):
+            return
+    choice_set.executions.pop(merge_group, None)
 
 
 def cancel_choice(choice_set: ChoiceSet, question_key: str) -> Choice | None:
     """선택을 지운다. 문서에도 그 변경이 남지 않는다 (워크플로우 12장)."""
     removed = choice_set.remove(question_key)
-    if removed and removed.merge_group:
-        still_used = any(
-            choice.merge_group == removed.merge_group and choice.option_id for choice in choice_set.choices.values()
-        )
-        if not still_used:
-            choice_set.executions.pop(removed.merge_group, None)
+    if removed:
+        drop_unused_execution(choice_set, removed.merge_group)
     return removed
 
 

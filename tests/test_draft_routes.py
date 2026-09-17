@@ -163,3 +163,43 @@ def test_step_five_has_no_score_or_judgement_wording():
     text = text_of(answered_client().get("/step/5").text)
     for word in ("점수", "성공 확률", "부적절", "오류입니다"):
         assert word not in text
+
+
+# ---------------------------------------------------------------- 쓰지 않는 실행 조건이 8장에 남지 않음 (6-5b)
+
+PARTIAL_A = {"question_key": "R07", "decision": "adopt", "option_id": "A", "collect_items": "쿠폰 사용 실적"}
+STALE = "참여 실적 자료: 수집 담당자"
+
+
+def test_disappeared_question_leaves_no_execution_pending():
+    c = answered_client(choice=PARTIAL_A)
+    c.post("/step/1", data={**VALID_FORM, "metrics": ["coupon_usage"]})
+    assert STALE not in c.get("/step/5/download").text
+
+
+def test_keep_original_after_adopt_leaves_no_execution_pending():
+    c = answered_client(choice=PARTIAL_A)
+    assert STALE in c.get("/step/5/download").text
+    c.post("/step/4", data={"question_key": "R07", "decision": "keep_original"})
+    assert STALE not in c.get("/step/5/download").text
+
+
+def test_switching_a_to_b_leaves_no_execution_pending():
+    c = answered_client(choice=PARTIAL_A)
+    c.post("/step/4", data={"question_key": "R07", "decision": "adopt", "option_id": "B"})
+    assert STALE not in c.get("/step/5/download").text
+
+
+def test_shared_execution_stays_while_another_question_adopts_a():
+    c = answered_client({**VALID_FORM, "target": "외국인 관광객"}, PARTIAL_A)
+    c.post("/step/4", data={**PARTIAL_A, "question_key": "R03"})
+    c.post("/step/4", data={"question_key": "R03", "decision": "keep_original"})
+    assert STALE in c.get("/step/5/download").text
+
+
+def test_r04_b_keeps_entered_cycle_after_r07_is_kept_original():
+    c = answered_client({**VALID_FORM, "period_start": "2026-10-01", "period_end": "2026-10-20"})
+    c.post("/step/4", data={"question_key": "R04", "decision": "adopt", "option_id": "B"})
+    c.post("/step/4", data={"question_key": "R07", "decision": "keep_original"})
+    text = c.get("/step/5/download").text
+    assert "사업 기간 성과는 월 1회 주기로 별도 확인" in text

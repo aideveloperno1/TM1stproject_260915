@@ -9,7 +9,9 @@ from policy_signal_map.choices.selection import (
     blocking_reasons,
     cancel_choice,
     pending_from_choices,
+    uses_execution,
 )
+from policy_signal_map.review.rules import rules_by_id
 from policy_signal_map.config import DEFAULT_EVIDENCE_PATH
 from policy_signal_map.evidence.loader import load_evidence
 from policy_signal_map.plan.models import IndicatorUse, Metric, sample_plan
@@ -218,3 +220,49 @@ def test_rule_without_card_metric_has_no_question_to_answer():
     _, result = review(metrics=[Metric.COUPON_USAGE])
     assert all(o.rule_id != "R07" for o in result.outcomes)
     assert blocking_reasons(result, ChoiceSet()) == []
+
+
+# ---------------------------------------------------------------- 쓰지 않는 실행 조건 (6-5b)
+
+
+def test_which_options_use_shared_execution():
+    rules = rules_by_id()
+    used = {(r.id, o.id) for r in rules.values() for o in r.options if uses_execution(o)}
+    # 입력칸이 있는 A들 + 문장에서 {cycle}을 쓰는 R04 B
+    assert used == {("R07", "A"), ("R03", "A"), ("R04", "A"), ("R04", "B")}
+
+
+def test_keep_original_after_adopt_drops_execution():
+    _, result = review()
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), ADOPT_A, ["쿠폰 사용 실적"])
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "keep_original"})
+    assert choice_set.execution_for("participation_data") is None
+
+
+def test_switching_to_option_without_execution_drops_it():
+    _, result = review()
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), ADOPT_A, ["쿠폰 사용 실적"])
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "adopt", "option_id": "B"})
+    assert choice_set.execution_for("participation_data") is None
+    assert pending_from_choices(choice_set, result) == []
+
+
+def test_archived_question_drops_execution():
+    _, result = review()
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), ADOPT_A, ["쿠폰 사용 실적"])
+    _, without_r07 = review(metrics=[Metric.COUPON_USAGE])
+    archive_missing(choice_set, without_r07)
+    assert choice_set.execution_for("participation_data") is None
+
+
+def test_execution_is_kept_while_option_text_still_uses_it():
+    # R04 B는 입력칸이 없지만 문서 문장에서 공유 주기를 쓴다 (사용자 결정 가, 9/17)
+    _, result = review(period_start="2026-10-01", period_end="2026-10-20")
+    choice_set = ChoiceSet()
+    apply_choice(choice_set, outcome_of(result, "R07"), ADOPT_A, ["쿠폰 사용 실적"])
+    apply_choice(choice_set, outcome_of(result, "R04"), {"decision": "adopt", "option_id": "B"})
+    apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "keep_original"})
+    assert choice_set.execution_for("participation_data").cycle == "월 1회"
