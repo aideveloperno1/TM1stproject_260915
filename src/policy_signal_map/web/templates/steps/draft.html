@@ -103,7 +103,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', path='js/save.js') }}"></script>
-<script src="{{ url_for('static', path='js/trace.js') }}"></script>
-<script src="{{ url_for('static', path='js/print.js') }}"></script>
+<script src="{{ url_for('static', path='js/save.js') }}?v={{ asset_version | default('') }}"></script>
+<script src="{{ url_for('static', path='js/trace.js') }}?v={{ asset_version | default('') }}"></script>
+<script src="{{ url_for('static', path='js/print.js') }}?v={{ asset_version | default('') }}"></script>
 {% endblock %}

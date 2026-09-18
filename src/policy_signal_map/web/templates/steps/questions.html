@@ -90,6 +90,6 @@
 
 {% block scripts %}
 {% if ai_enabled %}
-  <script src="{{ url_for('static', path='js/opinions.js') }}"></script>
+  <script src="{{ url_for('static', path='js/opinions.js') }}?v={{ asset_version | default('') }}"></script>
 {% endif %}
 {% endblock %}

@@ -215,5 +215,5 @@
 
 {% block scripts %}
 <script id="regions-data" type="application/json">{{ regions_json | tojson }}</script>
-<script src="{{ url_for('static', path='js/input.js') }}"></script>
+<script src="{{ url_for('static', path='js/input.js') }}?v={{ asset_version | default('') }}"></script>
 {% endblock %}

@@ -92,3 +92,12 @@ def test_static_files_are_revalidated():
     response = TestClient(app).get("/static/js/input.js")
     assert response.status_code == 200
     assert response.headers["cache-control"] == "no-cache"
+
+
+def test_static_urls_carry_a_version():
+    """파일이 바뀌면 주소가 바뀌어야 브라우저가 옛 CSS·JS를 쓰지 않는다 (2026-09-18)."""
+    import re
+
+    html = TestClient(app).get("/step/1").text
+    assert re.search(r'/static/js/input\.js\?v=\d+', html)
+    assert re.search(r'/static/css/style\.css\?v=\d+', html)
