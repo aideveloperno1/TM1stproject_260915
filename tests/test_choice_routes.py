@@ -51,7 +51,9 @@ def test_saving_choice_keeps_it_after_reload():
     assert str(response.url).endswith("/step/4")
 
     text = text_of(c.get("/step/4").text)
-    assert "R07 금액·비중과 성과지표 확인 채택" in text
+    # 제목에는 관리 번호를 쓰지 않고 작은 번호 배지로만 보여 준다 (사용자 결정 9/18)
+    assert "금액·비중과 성과지표 확인" in text and "채택" in text
+    assert "R07 금액·비중과 성과지표 확인" not in text
     assert "관광과 김담당" in c.get("/step/4").text
     assert "쿠폰 사용 실적" in c.get("/step/4").text
 
@@ -195,14 +197,14 @@ def test_archive_notice_shows_only_the_latest_plan_change():
     c = reviewed_client(TOURIST_FORM)
     c.post("/step/4", data={"question_key": "R03", "decision": "keep_original"})
     c.post("/step/1", data=VALID_FORM)
-    assert notice(c) == ("1", "R03")
+    assert notice(c) == ("1", "대상과 자료 확인")
 
     c.post("/step/1", data=TOURIST_FORM)
     c.post("/step/4", data={"question_key": "R03", "decision": "keep_original"})
     assert notice(c) is None
 
     c.post("/step/1", data=VALID_FORM)
-    assert notice(c) == ("1", "R03")
+    assert notice(c) == ("1", "대상과 자료 확인")
 
     c.post("/step/1", data={**VALID_FORM, "name": "사업명만 바꿈"})
     assert notice(c) is None

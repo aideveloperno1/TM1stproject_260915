@@ -12,6 +12,7 @@ from ..dependencies import evidence_state_dep, session_dep
 from ..evidence_state import EvidenceState
 from ..forms import parse_choice_form
 from ..session import WorkState
+from ...review.rules import rules_by_id
 from ..templating import redirect, render
 
 router = APIRouter()
@@ -27,6 +28,8 @@ def _context(state: WorkState, evidence: EvidenceState, errors: dict[str, str] |
         "choice_set": state.choices,
         "pending": pending_from_choices(state.choices, result),
         "blocking": blocking_reasons(result, state.choices),
+        # 안내 문구에 관리 번호(R07) 대신 제목을 쓰기 위한 표 (사용자 결정 9/18)
+        "rule_titles": {rule_id: rule.title for rule_id, rule in rules_by_id().items()},
         "decisions": DECISION_LABELS,
         "availabilities": AVAILABILITY_LABELS,
         "errors": errors or {},

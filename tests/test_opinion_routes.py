@@ -86,9 +86,10 @@ def test_opinions_are_returned_with_rule_ids(local_llm, monkeypatch):
     data = reviewed_client().get("/step/3/opinions").json()
 
     assert data["state"] == "ok"
+    # 화면 문장에서는 [R07] 표기를 빼고 근거 배지로만 보여 준다 (9/18)
     assert [o["text"] for o in data["opinions"]] == [
-        "참여자 확인 자료를 어디서 모을지 정해 두세요 [R07]",
-        "사용처 범위를 적어 두세요 [R07]",
+        "참여자 확인 자료를 어디서 모을지 정해 두세요",
+        "사용처 범위를 적어 두세요",
     ]
     assert data["opinions"][0]["rule_ids"] == ["R07"]
     assert data["model"] == "시험모델"

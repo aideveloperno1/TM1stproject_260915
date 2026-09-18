@@ -156,7 +156,7 @@ def pending_from_choices(choice_set: ChoiceSet, result: ReviewResult) -> list[st
         if choice is None:
             continue
         if choice.decision is Decision.HOLD:
-            pending.append(f"{outcome.rule_id} {outcome.title}: 보류")
+            pending.append(f"{outcome.title}: 보류")
     for merge_group, execution in choice_set.executions.items():
         for label in execution.pending_labels():
             pending.append(f"{merge_group_label(merge_group)}: {label}")
@@ -169,7 +169,7 @@ def blocking_reasons(result: ReviewResult, choice_set: ChoiceSet) -> list[str]:
     for outcome in result.questions:
         choice = choice_set.get(outcome.question_key)
         if choice is None:
-            reasons.append(f"{outcome.rule_id} {outcome.title}: 아직 고르지 않았습니다")
+            reasons.append(f"{outcome.title}: 아직 고르지 않았습니다")
         elif choice.needs_recheck:
-            reasons.append(f"{outcome.rule_id} {outcome.title}: 원안이 바뀌어 다시 확인이 필요합니다")
+            reasons.append(f"{outcome.title}: 원안이 바뀌어 다시 확인이 필요합니다")
     return reasons

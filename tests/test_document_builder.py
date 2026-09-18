@@ -138,7 +138,9 @@ def test_hold_is_recorded_in_section_eight():
     choose(result, choice_set, "R03", {"decision": "hold"})
 
     document, _ = document_for(plan, choice_set)
-    assert any("R03 대상과 자료 확인: 보류" in text for text in texts(document, 8))
+    # 8장 본문은 제목만 쓴다. 관리 번호는 별첨 변경 표·근거 추적에만 남는다 (9/18)
+    assert any("대상과 자료 확인: 보류" in text for text in texts(document, 8))
+    assert not any("R03 대상과 자료 확인" in text for text in texts(document, 8))
 
 
 def test_held_outcome_is_recorded_without_choice():

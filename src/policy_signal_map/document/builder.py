@@ -110,7 +110,8 @@ def _auto_records(result: ReviewResult) -> list[str]:
     records = []
     for outcome in result.outcomes:
         if outcome.kind == "held":
-            records.append(f"{outcome.rule_id} {outcome.title}: {outcome.message}")
+            # 8장 본문에는 관리 번호를 쓰지 않는다. 번호는 별첨 변경 표·근거 추적에만 남긴다
+            records.append(f"{outcome.title}: {outcome.message}")
     return records
 
 

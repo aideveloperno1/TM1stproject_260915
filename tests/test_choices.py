@@ -111,7 +111,7 @@ def test_keep_original_and_hold_clear_option_fields():
 
     apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "hold"})
     assert choice_set.get("R07").decision is Decision.HOLD
-    assert "R07 금액·비중과 성과지표 확인: 보류" in pending_from_choices(choice_set, result)
+    assert "금액·비중과 성과지표 확인: 보류" in pending_from_choices(choice_set, result)
 
 
 def test_cancel_removes_choice_and_unused_execution():
@@ -151,7 +151,7 @@ def test_blocking_reasons_list_unanswered_questions():
     choice_set = ChoiceSet()
     reasons = blocking_reasons(result, choice_set)
     assert len(reasons) == 2
-    assert any(r.startswith("R07") and "아직 고르지" in r for r in reasons)
+    assert any(r.startswith("금액·비중과 성과지표 확인") and "아직 고르지" in r for r in reasons)
 
     apply_choice(choice_set, outcome_of(result, "R07"), {"decision": "hold"})
     apply_choice(choice_set, outcome_of(result, "R03"), {"decision": "keep_original"})

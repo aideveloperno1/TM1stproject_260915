@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from ..review.rules import FORBIDDEN_WORDS
 
 RULE_ID = re.compile(r"R\d{2}")
+# 문장 끝·중간에 붙는 번호 표기: [R07], (R07, R05), [R07·R05]
+RULE_CITATION = re.compile(r"[\[(]\s*R\d{2}(?:\s*[,·/]\s*R\d{2})*\s*[\])]")
 # 규칙 번호를 뺀 뒤 남는 숫자·비율·금액 표기
 NUMBER = re.compile(r"\d|[%％]")
 # 수량을 나타내는 한글 표현. 수치를 글자로 바꿔 쓰는 것도 막는다
@@ -29,6 +31,16 @@ MAX_LINES = 3
 class Opinion:
     text: str
     cited_rule_ids: tuple[str, ...]
+
+    @property
+    def display_text(self) -> str:
+        """화면용 문장. 모델이 붙인 [R07] 같은 관리 번호 표기를 뺀다.
+
+        번호는 카드 아래 근거 배지로 따로 보여 주므로 문장에 두 번 나올 필요가 없다.
+        검사(check)는 원문 text로 하므로 규칙 번호 확인은 그대로 동작한다.
+        """
+        cleaned = RULE_CITATION.sub("", self.text)
+        return re.sub(r"\s{2,}", " ", cleaned).strip(" ·,")
 
 
 @dataclass(frozen=True)

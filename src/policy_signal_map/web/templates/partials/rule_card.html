@@ -2,8 +2,11 @@
 {% macro rule_card(outcome, rule_kind_labels) %}
 <article class="rule-card rule-card-{{ outcome.kind }}">
   <div class="rule-card-head">
-    <span class="rule-card-id">{{ outcome.rule_id }} {{ outcome.title }}</span>
-    <span class="rule-card-kind">{{ rule_kind_labels[outcome.kind] }}</span>
+    <span class="rule-card-id">{{ outcome.title }}</span>
+    <span class="rule-card-meta">
+      <span class="rule-code" title="검토 규칙 관리 번호">{{ outcome.rule_id }}</span>
+      <span class="rule-card-kind">{{ rule_kind_labels[outcome.kind] }}</span>
+    </span>
   </div>
 
   <p class="rule-card-message">{{ outcome.message }}</p>

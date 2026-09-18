@@ -10,11 +10,11 @@
 
     {% set recheck_keys = choice_set.needs_recheck_keys %}
     {% if recheck_keys %}
-      <p class="notice">원안이 바뀌어 다시 확인이 필요한 선택이 {{ recheck_keys | length }}건 있습니다: {{ recheck_keys | join(", ") }}</p>
+      <p class="notice">원안이 바뀌어 다시 확인이 필요한 선택이 {{ recheck_keys | length }}건 있습니다: {% for key in recheck_keys %}{{ rule_titles.get(key, key) }}{{ ", " if not loop.last }}{% endfor %}</p>
     {% endif %}
     {% if choice_set.last_archived %}
       <p class="notice">원안 변경으로 더 이상 해당하지 않는 선택 {{ choice_set.last_archived | length }}건을 보관했습니다:
-        {% for item in choice_set.last_archived %}{{ item.choice.rule_id }}{{ ", " if not loop.last }}{% endfor %} (보완 기획안에는 반영하지 않습니다)</p>
+        {% for item in choice_set.last_archived %}{{ rule_titles.get(item.choice.rule_id, item.choice.rule_id) }}{{ ", " if not loop.last }}{% endfor %} (보완 기획안에는 반영하지 않습니다)</p>
     {% endif %}
     {% if not result.outcomes %}
       <p class="notice">고를 질문이 없습니다. 바로 보완 기획안을 만들 수 있습니다.</p>
@@ -26,10 +26,13 @@
     {% set shared = choice_set.execution_for(outcome.merge_group) %}
     <section class="card choice-card" id="q-{{ outcome.question_key }}">
       <div class="rule-card-head">
-        <span class="rule-card-id">{{ outcome.rule_id }} {{ outcome.title }}</span>
-        {% if choice %}
-          <span class="rule-card-kind">{{ decisions[choice.decision] }}{{ " · 재확인 필요" if choice.needs_recheck }}</span>
-        {% endif %}
+        <span class="rule-card-id">{{ outcome.title }}</span>
+        <span class="rule-card-meta">
+          <span class="rule-code" title="검토 규칙 관리 번호">{{ outcome.rule_id }}</span>
+          {% if choice %}
+            <span class="rule-card-kind">{{ decisions[choice.decision] }}{{ " · 재확인 필요" if choice.needs_recheck }}</span>
+          {% endif %}
+        </span>
       </div>
       <p class="rule-card-message">{{ outcome.message }}</p>
 

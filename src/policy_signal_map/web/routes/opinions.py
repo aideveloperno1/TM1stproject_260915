@@ -64,7 +64,8 @@ def opinions(session: Session, evidence: Evidence) -> Response:
         {
             "state": "ok",
             "opinions": [
-                {"text": opinion.text, "rule_ids": list(opinion.cited_rule_ids)} for opinion in cached.opinions
+                {"text": opinion.display_text, "rule_ids": list(opinion.cited_rule_ids)}
+                for opinion in cached.opinions
             ],
             "model": cached.model,
             "model_label": model_info(cached.model).label,

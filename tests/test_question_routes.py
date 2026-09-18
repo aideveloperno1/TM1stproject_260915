@@ -35,7 +35,7 @@ def test_step_three_route_shows_its_own_screen():
 def test_step_three_shows_question_with_evidence_and_scope():
     text = text_of(reviewed_client().get("/step/3").text)
     assert "검토 질문 1건" in text
-    assert "R07 금액·비중과 성과지표 확인 질문" in text
+    assert "금액·비중과 성과지표 확인" in text and "R07" in text  # 제목 + 작은 번호 배지
     assert "외국인 결제금액 확대인가요" in text
     assert "왜 묻나요? 2026년 1~6월 전국 자료에서 비교 가능한 5개 인접 월 구간 중 2개 구간에서" in text
     assert "전국 참고 — 특정 지역의 진단이 아님" in text
@@ -45,7 +45,7 @@ def test_step_three_shows_question_with_evidence_and_scope():
 
 def test_step_three_shows_pending_items():
     text = text_of(reviewed_client().get("/step/3").text)
-    assert "R05 빠진 운영 조건 확인 추가 확정 필요" in text
+    assert "빠진 운영 조건 확인" in text and "추가 확정 필요" in text
     # 예시 폼은 예산을 비워 두므로 "미입력"이다 ([미정] 체크 시에는 "미정")
     assert "예산 (미입력), 쿠폰 사용처, 자료 확보 상태" in text
 
@@ -61,8 +61,8 @@ def test_step_three_separates_no_finding_and_not_reviewed():
     text = text_of(reviewed_client().get("/step/3").text)
     assert "확인했으나 해당 없음" in text
     assert "R01" in text and "R03" in text and "R04" in text
-    assert "검토하지 않음 R06 · 분석 예시" in text
-    assert "R02 · 향후 기능" in text
+    assert "검토하지 않음 분석 예시" in text and "R06" in text
+    assert "향후 기능" in text and "R02" in text
 
 
 def cards_text(html: str) -> str:
