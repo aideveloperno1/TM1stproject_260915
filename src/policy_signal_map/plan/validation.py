@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import date
 
+from ..labels import DATA_STATUS_LABELS
 from .models import BudgetStatus, DataStatus, Goal, Metric, PlanInput, RegionLevel
 from .regions import is_known_region
 
@@ -57,6 +58,9 @@ def validate_plan(plan: PlanInput) -> ValidationResult:
 
     if plan.budget.status is BudgetStatus.AMOUNT and plan.budget.krw is None:
         errors["budget"] = "예산은 0 이상의 원 단위 정수로 입력해 주세요."
+    elif plan.budget.status is BudgetStatus.UNDECIDED and plan.budget.raw.strip():
+        # 금액과 [미정]이 함께 오면 금액을 조용히 버리지 않고 물어본다 (9/18)
+        errors["budget"] = "금액과 [미정] 중 하나만 남겨 주세요. 금액을 쓰려면 [미정] 체크를 풀어 주세요."
 
     if not plan.metrics:
         errors["metrics"] = "현재 성과지표를 하나 이상 골라 주세요."
@@ -74,8 +78,10 @@ def validate_plan(plan: PlanInput) -> ValidationResult:
     if not plan.usage_place:
         pending.append("쿠폰 사용처")
     if plan.data_status is None:
-        pending.append("자료 확보 상태")
+        pending.append("자료 확보 상태 (선택 안 함)")
     elif plan.data_status is not DataStatus.SECURED:
-        pending.append("성과 자료 확보")
+        # 고른 값을 함께 보여 준다. 고르기 전과 고른 뒤가 구분되지 않으면
+        # "선택했는데 왜 그대로지?"로 읽힌다 (사용자 확인 9/18)
+        pending.append(f"성과 자료 확보 ({DATA_STATUS_LABELS[plan.data_status]})")
 
     return ValidationResult(errors=errors, pending=pending)

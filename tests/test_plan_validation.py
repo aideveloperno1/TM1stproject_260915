@@ -1,6 +1,6 @@
 from helpers import VALID_FORM, parse
 
-from policy_signal_map.plan.models import BudgetStatus, Goal, sample_plan
+from policy_signal_map.plan.models import BudgetStatus, DataStatus, Goal, sample_plan
 from policy_signal_map.plan.validation import validate_plan
 
 
@@ -29,7 +29,7 @@ def test_invalid_budget_text_is_error_not_zero():
 
 def test_pending_items_for_empty_optional_fields():
     pending = validate_plan(parse(VALID_FORM)).pending
-    assert pending == ["예산 (미입력)", "쿠폰 사용처", "자료 확보 상태"]
+    assert pending == ["예산 (미입력)", "쿠폰 사용처", "자료 확보 상태 (선택 안 함)"]
 
 
 def test_other_goal_requires_description():
@@ -52,3 +52,19 @@ def test_unknown_region_is_rejected():
 def test_period_end_before_start():
     plan = parse({**VALID_FORM, "period_end": "2026-09-01"})
     assert validate_plan(plan).errors["period"] == "종료일이 시작일보다 빠릅니다."
+
+
+def test_chosen_data_status_is_shown_in_pending_item():
+    """고르기 전과 고른 뒤를 구분할 수 있어야 한다 (사용자 확인 2026-09-18)."""
+    plan = parse(VALID_FORM)
+    plan.data_status = DataStatus.NEGOTIATING
+    assert "성과 자료 확보 (협의 중)" in validate_plan(plan).pending
+    plan.data_status = DataStatus.SECURED
+    assert not any("자료 확보" in item for item in validate_plan(plan).pending)
+
+
+def test_amount_with_undecided_checkbox_is_an_error():
+    """금액과 [미정]이 함께 오면 금액을 조용히 버리지 않는다 (2026-09-18)."""
+    plan = parse({**VALID_FORM, "budget_undecided": "1", "budget_krw": "1000000"})
+    assert plan.budget.status is BudgetStatus.UNDECIDED
+    assert "budget" in validate_plan(plan).errors

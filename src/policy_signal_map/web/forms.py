@@ -51,7 +51,8 @@ def parse_plan_form(single: Mapping[str, str], multi: Mapping[str, Sequence[str]
 
     raw_krw = text("budget_krw").replace(",", "")
     if single.get("budget_undecided"):
-        budget = Budget(BudgetStatus.UNDECIDED)
+        # 금액을 함께 보냈으면 원문을 남겨 화면에서 고칠 수 있게 한다 (validation이 오류로 안내)
+        budget = Budget(BudgetStatus.UNDECIDED, raw=text("budget_krw"))
     elif raw_krw == "":
         budget = Budget(BudgetStatus.UNSET)
     elif raw_krw.isdigit():

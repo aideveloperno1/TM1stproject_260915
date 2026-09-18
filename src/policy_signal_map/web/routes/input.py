@@ -38,6 +38,8 @@ def _render(
         "regions_json": load_regions(),
         "rules": load_rule_catalog(),
         "budget_status": BudgetStatus,
+        # 아직 아무것도 입력하지 않았으면 필수 항목을 "확인 필요"로 겁주지 않는다 (9/18)
+        "plan_touched": plan != PlanInput(),
     }
     return render(
         request,
