@@ -85,3 +85,10 @@ def test_pages_declare_an_icon_so_browsers_do_not_request_favicon():
     # 파비콘 파일이 없어 /favicon.ico 요청이 404 콘솔 기록을 남기던 것을 막는다 (6-4a)
     html = TestClient(app).get("/step/1").text
     assert '<link rel="icon" href="data:," />' in html
+
+
+def test_static_files_are_revalidated():
+    """브라우저가 옛 CSS·JS를 계속 쓰지 않도록 매번 확인하게 한다 (2026-09-18)."""
+    response = TestClient(app).get("/static/js/input.js")
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-cache"
