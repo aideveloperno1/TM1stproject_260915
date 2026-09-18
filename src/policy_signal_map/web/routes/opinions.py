@@ -13,6 +13,7 @@ from ...llm.base import LLMError, get_provider
 from ...llm.opinions import safe_collect
 from ...llm.catalog import model_info
 from ...review.engine import run_review
+from ...review.rules import rules_by_id
 from ..ai_models import current_model
 from ..dependencies import evidence_state_dep, session_dep
 from ..evidence_state import EvidenceState
@@ -60,11 +61,16 @@ def opinions(session: Session, evidence: Evidence) -> Response:
             return JSONResponse(FAILED)
         state.remember_opinions(model, cached, asked_for)
 
+    titles = {rule_id: rule.title for rule_id, rule in rules_by_id().items()}
     return JSONResponse(
         {
             "state": "ok",
             "opinions": [
-                {"text": opinion.display_text, "rule_ids": list(opinion.cited_rule_ids)}
+                {
+                    "text": opinion.display_text,
+                    # 화면 배지는 관리 번호가 아니라 규칙 제목으로 보여 준다 (사용자 결정 9/18)
+                    "rule_labels": [titles.get(rule_id, rule_id) for rule_id in opinion.cited_rule_ids],
+                }
                 for opinion in cached.opinions
             ],
             "model": cached.model,

@@ -91,7 +91,7 @@ def test_opinions_are_returned_with_rule_ids(local_llm, monkeypatch):
         "참여자 확인 자료를 어디서 모을지 정해 두세요",
         "사용처 범위를 적어 두세요",
     ]
-    assert data["opinions"][0]["rule_ids"] == ["R07"]
+    assert data["opinions"][0]["rule_labels"] == ["금액·비중과 성과지표 확인"]
     assert data["model"] == "시험모델"
 
 

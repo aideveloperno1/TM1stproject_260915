@@ -3,10 +3,7 @@
 <article class="rule-card rule-card-{{ outcome.kind }}">
   <div class="rule-card-head">
     <span class="rule-card-id">{{ outcome.title }}</span>
-    <span class="rule-card-meta">
-      <span class="rule-code" title="검토 규칙 관리 번호">{{ outcome.rule_id }}</span>
-      <span class="rule-card-kind">{{ rule_kind_labels[outcome.kind] }}</span>
-    </span>
+    <span class="rule-card-kind">{{ rule_kind_labels[outcome.kind] }}</span>
   </div>
 
   <p class="rule-card-message">{{ outcome.message }}</p>
@@ -27,7 +24,7 @@
   {% if outcome.region_note %}<p class="note">{{ outcome.region_note }}</p>{% endif %}
 
   {% if outcome.related_rule_ids %}
-    <p class="note">함께 확인: {{ outcome.related_rule_ids | join(", ") }} · 같은 자료를 묻는 질문이라 보완 선택에서 한 번만 입력하면 됩니다.</p>
+    <p class="note">함께 확인: {{ outcome.related_titles | join(", ") }} · 같은 자료를 묻는 질문이라 보완 선택에서 한 번만 입력하면 됩니다.</p>
   {% endif %}
 </article>
 {% endmacro %}

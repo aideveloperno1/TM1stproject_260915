@@ -19,7 +19,7 @@
           {% if used %}
             <ul class="plain-list">
               {% for change in used %}
-                <li>{{ change.section }}장 · {{ change.after }} <span class="muted small">({{ change.rule_id }} · {{ change.decision_label }})</span></li>
+                <li>{{ change.section }}장 · {{ change.after }} <span class="muted small">({{ change.rule_title }} · {{ change.decision_label }})</span></li>
               {% endfor %}
             </ul>
           {% else %}

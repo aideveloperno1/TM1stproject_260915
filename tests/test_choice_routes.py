@@ -79,7 +79,7 @@ def test_shared_execution_input_is_filled_for_related_question():
     html = c.get("/step/4").text
     # R03 카드에도 같은 수집자료가 채워져 있고, 함께 쓰는 입력임을 알린다
     assert html.count("쿠폰 사용 실적") >= 2
-    assert "같은 자료를 묻는 질문(R07)과 함께 쓰는 입력입니다" in text_of(html)
+    assert "같은 자료를 묻는 질문(금액·비중과 성과지표 확인)과 함께 쓰는 입력입니다" in text_of(html)
 
 
 def test_next_step_is_blocked_until_every_question_is_answered():

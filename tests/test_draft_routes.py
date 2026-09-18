@@ -81,7 +81,7 @@ def test_pending_items_are_shown_without_being_filled():
 def test_change_table_lists_rule_and_decision():
     text = text_of(answered_client().get("/step/5").text)
     assert "변경 전후 5건" in text
-    assert "R07 · 대안 A" in text and "채택" in text
+    assert "금액·비중과 성과지표 확인 · 대안 A" in text and "채택" in text
 
 
 def test_full_document_screen_shows_markdown_source():

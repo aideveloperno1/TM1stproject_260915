@@ -17,9 +17,9 @@ def test_later_steps_locked_until_review_starts():
 def test_input_page_lists_rules_from_catalog():
     response = client().get("/step/1")
     assert response.status_code == 200
-    # 1단계 예정 목록도 범위 라벨을 먼저 보여 주고 번호는 작게 붙인다 (9/18)
-    assert "검토 구현" in response.text and "R07" in response.text
-    assert "향후 기능" in response.text and "R02" in response.text
+    # 1단계 예정 목록은 범위 라벨과 설명만 보여 준다 (관리 번호는 화면에 쓰지 않음, 9/18)
+    assert "검토 구현" in response.text and "향후 기능" in response.text
+    assert "R07" not in response.text and "R02" not in response.text
 
 
 def test_static_files_are_served():

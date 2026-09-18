@@ -68,7 +68,7 @@
       <div class="table-scroll">
         <table class="data-table">
           <thead>
-            <tr><th>장</th><th>원안</th><th>보완안</th><th>규칙·대안</th><th>담당자 선택</th><th>근거</th></tr>
+            <tr><th>장</th><th>원안</th><th>보완안</th><th>검토 질문·대안</th><th>담당자 선택</th><th>근거</th></tr>
           </thead>
           <tbody>
             {% for change in document.changes %}
@@ -80,7 +80,7 @@
                   <td class="cell-add">(추가)</td>
                 {% endif %}
                 <td>{{ change.after }}</td>
-                <td>{{ change.rule_id }}{% if change.option_id %} · 대안 {{ change.option_id }}{% endif %}</td>
+                <td>{{ change.rule_title }}{% if change.option_id %} · 대안 {{ change.option_id }}{% endif %}</td>
                 <td>{{ change.decision_label }}</td>
                 <td>{{ change.evidence_ids | join(", ") or "-" }}</td>
               </tr>

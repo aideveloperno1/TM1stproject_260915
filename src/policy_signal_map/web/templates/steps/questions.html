@@ -63,7 +63,7 @@
       {% if result.no_finding %}
         <div class="rule-list">
           {% for item in result.no_finding %}
-            <div class="rule"><div class="rule-text">{{ item.title }}</div><div class="rule-code" title="검토 규칙 관리 번호">{{ item.rule_id }}</div></div>
+            <div class="rule"><div class="rule-text">{{ item.title }}</div></div>
           {% endfor %}
         </div>
       {% else %}
@@ -79,7 +79,6 @@
           <div class="rule rule-{{ 'example' if item.scope_label == '분석 예시' else 'future' }}">
             <div class="rule-id">{{ item.scope_label }}</div>
             <div class="rule-text">{{ item.reason }}</div>
-            <div class="rule-code" title="검토 규칙 관리 번호">{{ item.rule_id }}</div>
           </div>
         {% endfor %}
       </div>

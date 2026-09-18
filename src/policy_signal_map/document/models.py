@@ -55,7 +55,8 @@ class Change:
     section: int
     before: str | None
     after: str
-    rule_id: str
+    rule_id: str  # 기록용 내부 값. 화면·문서에는 rule_title을 쓴다
+    rule_title: str
     option_id: str | None
     decision_label: str
     evidence_ids: tuple[str, ...] = ()

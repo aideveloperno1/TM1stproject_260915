@@ -20,13 +20,13 @@
     item.className = "ai-opinion";
     item.textContent = opinion.text;
 
-    if (opinion.rule_ids && opinion.rule_ids.length) {
+    if (opinion.rule_labels && opinion.rule_labels.length) {
       var badges = document.createElement("span");
       badges.className = "badge-row";
-      opinion.rule_ids.forEach(function (ruleId) {
+      opinion.rule_labels.forEach(function (label) {
         var badge = document.createElement("span");
         badge.className = "scope-badge";
-        badge.textContent = "근거 " + ruleId;
+        badge.textContent = "근거 " + label;
         badges.appendChild(badge);
       });
       item.appendChild(badges);

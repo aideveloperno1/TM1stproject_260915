@@ -33,16 +33,22 @@ def _with_related(outcomes: list[ReviewOutcome]) -> tuple[ReviewOutcome, ...]:
     """같은 merge_group 질문끼리 서로를 가리킨다. 카드를 합치지는 않는다 (3검토질문계획 결정 ④)."""
     result = []
     for outcome in outcomes:
-        related = (
+        others = (
             tuple(
-                other.rule_id
+                other
                 for other in outcomes
                 if other is not outcome and other.merge_group == outcome.merge_group and other.kind == "question"
             )
             if outcome.merge_group and outcome.kind == "question"
             else ()
         )
-        result.append(outcome if not related else replace(outcome, related_rule_ids=related))
+        related = tuple(other.rule_id for other in others)
+        titles = tuple(other.title for other in others)
+        result.append(
+            outcome
+            if not related
+            else replace(outcome, related_rule_ids=related, related_titles=titles)
+        )
     return tuple(result)
 
 

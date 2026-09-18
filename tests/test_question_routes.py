@@ -60,9 +60,11 @@ def test_step_three_does_not_preview_options():
 def test_step_three_separates_no_finding_and_not_reviewed():
     text = text_of(reviewed_client().get("/step/3").text)
     assert "확인했으나 해당 없음" in text
-    assert "R01" in text and "R03" in text and "R04" in text
-    assert "검토하지 않음 분석 예시" in text and "R06" in text
-    assert "향후 기능" in text and "R02" in text
+    # 화면에는 관리 번호를 쓰지 않고 규칙 제목만 보여 준다 (사용자 결정 9/18)
+    assert "목표와 사용처 확인" in text and "대상과 자료 확인" in text and "기간 확인" in text
+    assert "R01" not in text and "R03" not in text
+    assert "검토하지 않음 분석 예시" in text and "향후 기능" in text
+    assert "R06" not in text and "R02" not in text
 
 
 def cards_text(html: str) -> str:
@@ -82,8 +84,9 @@ def test_reference_indicator_use_shows_notice_without_question():
 def test_related_questions_are_shown_without_merging():
     text = text_of(reviewed_client(TOURIST_FORM).get("/step/3").text)
     assert "검토 질문 2건" in text
-    assert "함께 확인: R03" in text
-    assert "함께 확인: R07" in text
+    # 함께 확인 안내도 번호가 아니라 규칙 제목으로 (사용자 결정 9/18)
+    assert "함께 확인: 대상과 자료 확인" in text
+    assert "함께 확인: 금액·비중과 성과지표 확인" in text
 
 
 def test_step_three_error_page_when_evidence_fails(use_evidence):

@@ -27,12 +27,9 @@
     <section class="card choice-card" id="q-{{ outcome.question_key }}">
       <div class="rule-card-head">
         <span class="rule-card-id">{{ outcome.title }}</span>
-        <span class="rule-card-meta">
-          <span class="rule-code" title="검토 규칙 관리 번호">{{ outcome.rule_id }}</span>
-          {% if choice %}
-            <span class="rule-card-kind">{{ decisions[choice.decision] }}{{ " · 재확인 필요" if choice.needs_recheck }}</span>
-          {% endif %}
-        </span>
+        {% if choice %}
+          <span class="rule-card-kind">{{ decisions[choice.decision] }}{{ " · 재확인 필요" if choice.needs_recheck }}</span>
+        {% endif %}
       </div>
       <p class="rule-card-message">{{ outcome.message }}</p>
 
@@ -78,7 +75,7 @@
               <legend class="label">실행 조건 <span class="hint">대안 A를 고른 경우</span></legend>
               {% if outcome.related_rule_ids %}
                 {# 함께 묻는 질문이 없으면 "(없음)"으로 채우지 않고 문장을 생략한다 (6-4a) #}
-                <p class="note">같은 자료를 묻는 질문({{ outcome.related_rule_ids | join(", ") }})과 함께 쓰는 입력입니다. 한 번만 적으면 됩니다.</p>
+                <p class="note">같은 자료를 묻는 질문({{ outcome.related_titles | join(", ") }})과 함께 쓰는 입력입니다. 한 번만 적으면 됩니다.</p>
               {% endif %}
               <label class="field">
                 <span class="label">수집할 자료 <span class="req">필수</span></span>

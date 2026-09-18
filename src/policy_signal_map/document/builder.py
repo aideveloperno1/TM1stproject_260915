@@ -97,6 +97,7 @@ def _apply_choice(
                 before=before,
                 after=text,
                 rule_id=choice.rule_id,
+                rule_title=outcome.title,
                 option_id=option.id,
                 decision_label=decision_label,
                 evidence_ids=choice.evidence_ids,

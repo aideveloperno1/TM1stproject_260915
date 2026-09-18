@@ -50,7 +50,9 @@ def test_change_table_lists_every_change():
     assert "| 장 | 원안 | 보완안 | 규칙·대안 | 담당자 선택 | 근거 |" in text
     rows = [line for line in text.splitlines() if line.startswith("| 7 |")]
     assert len(rows) == len(document.changes)
-    assert "R07 · 대안 A" in rows[0] and "채택" in rows[0] and "DEMO-R07-NATIONAL" in rows[0]
+    # 별첨 표도 관리 번호 대신 규칙 제목을 쓴다 (사용자 결정 9/18)
+    assert "금액·비중과 성과지표 확인 · 대안 A" in rows[0] and "채택" in rows[0] and "DEMO-R07-NATIONAL" in rows[0]
+    assert "R07 · 대안 A" not in rows[0]
 
 
 def test_evidence_appendix_shows_scope_and_limits():

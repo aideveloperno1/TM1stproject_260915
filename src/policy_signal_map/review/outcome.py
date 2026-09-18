@@ -30,8 +30,10 @@ class ReviewOutcome:
     region_note: str | None = None
     options: tuple[OptionSpec, ...] = ()
     related_fields: tuple[str, ...] = ()
-    # 같은 자료를 묻는 다른 규칙 (3단계는 카드를 합치지 않고 서로를 가리킨다)
+    # 같은 자료를 묻는 다른 규칙 (3단계는 카드를 합치지 않고 서로를 가리킨다).
+    # 화면 문구에는 번호가 아니라 related_titles를 쓴다 (사용자 결정 9/18)
     related_rule_ids: tuple[str, ...] = ()
+    related_titles: tuple[str, ...] = ()
     # 문장 조립에 쓴 수치. 화면 표시용이며 LLM에는 넘기지 않는다
     observations: dict[str, Any] = field(default_factory=dict)
     # 이 결과를 만들 때 고른 문구 키. AI 참고 의견이 수치 없는 상황 설명을 찾는 데 쓴다

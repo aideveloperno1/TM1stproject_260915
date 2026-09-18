@@ -27,7 +27,7 @@
 | 장 | 원안 | 보완안 | 규칙·대안 | 담당자 선택 | 근거 |
 |---|---|---|---|---|---|
 {% for change in doc.changes %}
-| {{ change.section }} | {{ (change.before or "(추가)") | md_escape | mark_pending }} | {{ change.after | md_escape | mark_pending }} | {{ change.rule_id }}{% if change.option_id %} · 대안 {{ change.option_id }}{% endif %} | {{ change.decision_label }} | {{ change.evidence_ids | join(", ") or "-" }} |
+| {{ change.section }} | {{ (change.before or "(추가)") | md_escape | mark_pending }} | {{ change.after | md_escape | mark_pending }} | {{ change.rule_title }}{% if change.option_id %} · 대안 {{ change.option_id }}{% endif %} | {{ change.decision_label }} | {{ change.evidence_ids | join(", ") or "-" }} |
 {% endfor %}
 {% else %}
 변경한 항목이 없습니다. 원안을 그대로 유지했습니다.
