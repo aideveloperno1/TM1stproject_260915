@@ -1,6 +1,6 @@
 # 소비 시그널 정책맵 사용법
 
-> 기준: 2026-09-17 코드. 화면 캡처는 **시연용 합성 수치**로 찍었으며 실제 카드 분석 결과가 아닙니다.
+> 기준: 2026-09-18 코드. 화면 캡처는 **시연용 합성 수치**로 찍었으며 실제 카드 분석 결과가 아닙니다.
 > 캡처를 다시 만들 때: `uv run python scripts/capture_screenshots.py` ([screenshots/README.md](screenshots/README.md))
 
 ## 1. 이 서비스로 하는 일
