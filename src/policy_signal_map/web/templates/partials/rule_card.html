@@ -12,6 +12,10 @@
     <p class="rule-card-why"><b>왜 묻나요?</b> {{ outcome.why }}</p>
   {% endif %}
 
+  {# 근거 칩의 `DEMO-R07-NATIONAL`은 규칙 관리 번호가 아니라 데이터 담당이 파일에 붙인
+     근거 자료 이름(evidence_id)이다. 검수·심사에서 "이 수치가 어느 자료에서 왔는지"를
+     짚는 데 쓰므로 화면에 남긴다. 규칙 번호(R01~R07)는 화면에 쓰지 않는다
+     (사용자 결정 2026-09-18, checks.md 1장 "검토 규칙 관리 번호 화면 표시"). #}
   {% if outcome.scope_label or outcome.evidence_ids %}
     <div class="badge-row">
       {% if outcome.scope_label %}<span class="scope-badge">{{ outcome.scope_label }}</span>{% endif %}
