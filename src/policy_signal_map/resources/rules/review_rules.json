@@ -338,7 +338,7 @@
       "related_fields": [],
       "document_targets": [],
       "messages": {
-        "not_reviewed": "업종 후보 검토는 지역 기준(가맹점 소재지 등)과 운영 자료가 확인된 뒤에 적용합니다."
+        "not_reviewed": "업종 후보 검토는 지역 기준(가맹점 소재지 등)과 운영 자료가 확인된 뒤에 적용합니다. 현재 자료는 외국인 전체 기준이라 관광객만 따로 볼 수 없습니다."
       },
       "options": [],
       "llm_context": {

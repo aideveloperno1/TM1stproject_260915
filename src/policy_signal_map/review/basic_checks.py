@@ -13,6 +13,8 @@ from ..plan.validation import validate_plan
 from .outcome import ReviewOutcome
 from .rules import RuleInfo
 
+# 월 단위 집계 자료와 그보다 짧은 사업을 가르는 서비스 운영 기준. 카드 자료 분석에서 나온
+# 통계 기준이 아니다 (데이터 담당 검수 2026-09-17, docs/review_rules.md R04).
 SHORT_PERIOD_DAYS = 31
 TOURIST_WORDS = ("관광객", "방문객", "여행객")
 CARD_METRICS = (Metric.FOREIGN_SHARE, Metric.FOREIGN_AMOUNT)
